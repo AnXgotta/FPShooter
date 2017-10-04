@@ -528,5 +528,53 @@ protected:
 	FORCEINLINE USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns Mesh3P subobject **/
 	FORCEINLINE USkeletalMeshComponent* GetMesh3P() const { return Mesh3P; }
+
+
+	FORCEINLINE void PrintString(UWorld* World, const EWeaponState::Type WeaponState, const FString& InString, FLinearColor TextColor)
+	{
+		FString WepState;
+
+		switch (WeaponState) {
+			case EWeaponState::Idle:
+				WepState = " (Idle) ";
+				break;
+			case EWeaponState::Firing:
+				WepState = " (Firing) ";
+				break;
+			case EWeaponState::Equipping:
+				WepState = " (Equipping) ";
+				break;
+			case EWeaponState::Reloading:
+				WepState = " (Reloading) ";
+				break;
+		}
+
+		FString Prefix;
+		if (World)
+		{
+			if (World->WorldType == EWorldType::PIE)
+			{
+				switch (World->GetNetMode())
+				{
+				case NM_Client:
+					Prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
+					break;
+				case NM_DedicatedServer:
+				case NM_ListenServer:
+					Prefix = FString::Printf(TEXT("Server: "));
+					break;
+				}
+			}
+		}
+
+		const FString FinalString = Prefix + WepState + InString;
+
+		float Duration = 10.0f;
+		GEngine->AddOnScreenDebugMessage(-1, Duration, TextColor.ToFColor(true), FinalString);
+
+		
+	}
+
+
 };
 
