@@ -41,7 +41,6 @@ AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Su
 
 	CurrentAmmo = 0;
 	CurrentAmmoInClip = 0;
-	BurstCounter = 0;
 	LastFireTime = 0.0f;
 
 	PrimaryActorTick.bCanEverTick = true;
@@ -362,13 +361,6 @@ void AShooterWeapon::GiveAmmo(int AddAmount)
 		BotAI->CheckAmmo(this);
 	}
 	
-	// start reload if clip was empty
-	if (GetCurrentAmmoInClip() <= 0 &&
-		CanReload() &&
-		MyPawn->GetWeapon() == this)
-	{
-		ClientStartReload();
-	}
 }
 
 void AShooterWeapon::UseAmmo()
@@ -419,18 +411,12 @@ void AShooterWeapon::HandleFiring()
 			FireWeapon();
 
 			UseAmmo();
-			
-			// update firing FX on remote clients if function was called on server
-			BurstCounter++;
+
 		}
-	}
-	else if (CanReload())
-	{
-		StartReload();
 	}
 	else if (MyPawn && MyPawn->IsLocallyControlled())
 	{
-		if (GetCurrentAmmo() == 0 && !bRefiring)
+		if (GetCurrentAmmoInClip() == 0 && !bRefiring)
 		{
 			PlayWeaponSound(OutOfAmmoSound);
 			AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(MyPawn->Controller);
@@ -442,10 +428,8 @@ void AShooterWeapon::HandleFiring()
 		}
 		
 		// stop weapon fire FX, but stay in Firing state
-		if (BurstCounter > 0)
-		{
-			OnBurstFinished();
-		}
+		OnBurstFinished();
+		
 	}
 
 	if (MyPawn && MyPawn->IsLocallyControlled())
@@ -456,15 +440,12 @@ void AShooterWeapon::HandleFiring()
 			ServerHandleFiring();
 		}
 
-		// reload after firing last round
-		if (CurrentAmmoInClip <= 0 && CanReload())
-		{
-			StartReload();
-		}
-
 		// setup refire timer
 		bRefiring = (CurrentState == EWeaponState::Firing && WeaponConfig.TimeBetweenShots > 0.0f);
-		if (bRefiring)
+
+		if (WeaponConfig.bSingleFire) {
+			StopFire();
+		}else if (bRefiring)
 		{
 			GetWorldTimerManager().SetTimer(TimerHandle_HandleFiring, this, &AShooterWeapon::HandleFiring, WeaponConfig.TimeBetweenShots, false);
 		}
@@ -490,7 +471,7 @@ void AShooterWeapon::ServerHandleFiring_Implementation()
 		UseAmmo();
 
 		// update firing FX on remote clients
-		BurstCounter++;
+		MulticastSimulateFireFX();
 	}
 }
 
@@ -520,7 +501,6 @@ void AShooterWeapon::SetWeaponState(EWeaponState::Type NewState)
 
 	if (PrevState == EWeaponState::Firing && NewState != EWeaponState::Firing)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("SetWeaponState - OnBurstFinished"));
 		OnBurstFinished();
 	}
 
@@ -530,6 +510,7 @@ void AShooterWeapon::SetWeaponState(EWeaponState::Type NewState)
 	{
 		OnBurstStarted();
 	}
+	PrintString(GetWorld(), CurrentState, "SetWeaponState", FLinearColor::Red);
 }
 
 void AShooterWeapon::DetermineWeaponState()
@@ -578,16 +559,7 @@ void AShooterWeapon::OnBurstStarted()
 }
 
 void AShooterWeapon::OnBurstFinished()
-{
-	// stop firing FX on remote clients
-	BurstCounter = 0;
-
-	// stop firing FX locally, unless it's a dedicated server
-	if (GetNetMode() != NM_DedicatedServer)
-	{
-		StopSimulatingWeaponFire();
-	}
-	
+{	
 	GetWorldTimerManager().ClearTimer(TimerHandle_HandleFiring);
 	bRefiring = false;
 }
@@ -758,18 +730,6 @@ void AShooterWeapon::OnRep_MyPawn()
 	}
 }
 
-void AShooterWeapon::OnRep_BurstCounter()
-{
-	if (BurstCounter > 0)
-	{
-		SimulateWeaponFire();
-	}
-	else
-	{
-		StopSimulatingWeaponFire();
-	}
-}
-
 void AShooterWeapon::OnRep_Reload()
 {
 	if (bPendingReload)
@@ -782,24 +742,38 @@ void AShooterWeapon::OnRep_Reload()
 	}
 }
 
+bool AShooterWeapon::MulticastSimulateFireFX_Validate() {
+	return true;
+}
+
+void AShooterWeapon::MulticastSimulateFireFX_Implementation() {
+	// multicast used for all other clients to get my FX, I handle my stuff locally
+	if (GetNetMode() == NM_Client && !(MyPawn && MyPawn->IsLocallyControlled()))
+	{
+		SimulateWeaponFire();
+		PrintString(GetWorld(), CurrentState, "SimulateWeaponFire CLIENT !LOCAL", FLinearColor::Blue);
+	}
+}
+	
+
 void AShooterWeapon::SimulateWeaponFire()
 {
 	if (Role == ROLE_Authority && CurrentState != EWeaponState::Firing)
 	{
 		return;
-	}
+	}	
 
 	if (MuzzleFX)
 	{
 		USkeletalMeshComponent* UseWeaponMesh = GetWeaponMesh();
-		if (!bLoopedMuzzleFX || MuzzlePSC == NULL)
-		{
+
 			// Split screen requires we create 2 effects. One that we see and one that the other player sees.
 			if( (MyPawn != NULL ) && ( MyPawn->IsLocallyControlled() == true ) )
 			{
 				AController* PlayerCon = MyPawn->GetController();				
 				if( PlayerCon != NULL )
 				{
+					PrintString(GetWorld(), CurrentState, "SimulateWeaponFire Call SELF", FLinearColor::Blue);
 					Mesh1P->GetSocketLocation(MuzzleAttachPoint);
 					MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, Mesh1P, MuzzleAttachPoint);
 					MuzzlePSC->bOwnerNoSee = false;
@@ -813,28 +787,13 @@ void AShooterWeapon::SimulateWeaponFire()
 			}
 			else
 			{
-				MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, UseWeaponMesh, MuzzleAttachPoint);
+				PrintString(GetWorld(), CurrentState, "SimulateWeaponFire Call OTHER", FLinearColor::Blue);
+				UGameplayStatics::SpawnEmitterAttached(MuzzleFX, UseWeaponMesh, MuzzleAttachPoint);
 			}
-		}
+		
 	}
 
-	if (!bLoopedFireAnim || !bPlayingFireAnim)
-	{
-		PlayWeaponAnimation(FireAnim);
-		bPlayingFireAnim = true;
-	}
-
-	if (bLoopedFireSound)
-	{
-		if (FireAC == NULL)
-		{
-			FireAC = PlayWeaponSound(FireLoopSound);
-		}
-	}
-	else
-	{
-		PlayWeaponSound(FireSound);
-	}
+	PlayWeaponSound(FireSound);
 
 	AShooterPlayerController* PC = (MyPawn != NULL) ? Cast<AShooterPlayerController>(MyPawn->Controller) : NULL;
 	if (PC != NULL && PC->IsLocalController())
@@ -852,6 +811,7 @@ void AShooterWeapon::SimulateWeaponFire()
 
 void AShooterWeapon::StopSimulatingWeaponFire()
 {
+	PrintString(GetWorld(), CurrentState, "StopSimulateWeaponFire Call", FLinearColor::Green);
 	if (bLoopedMuzzleFX )
 	{
 		if( MuzzlePSC != NULL )
@@ -890,7 +850,6 @@ void AShooterWeapon::GetLifetimeReplicatedProps( TArray< FLifetimeProperty > & O
 	DOREPLIFETIME_CONDITION( AShooterWeapon, CurrentAmmo,		COND_OwnerOnly );
 	DOREPLIFETIME_CONDITION( AShooterWeapon, CurrentAmmoInClip, COND_OwnerOnly );
 
-	DOREPLIFETIME_CONDITION( AShooterWeapon, BurstCounter,		COND_SkipOwner );
 	DOREPLIFETIME_CONDITION( AShooterWeapon, bPendingReload,	COND_SkipOwner );
 }
 

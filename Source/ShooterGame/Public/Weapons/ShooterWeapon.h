@@ -406,10 +406,6 @@ protected:
 	UPROPERTY(Transient, Replicated)
 	int32 CurrentAmmoInClip;
 
-	/** burst counter, used for replicating fire events to remote clients */
-	UPROPERTY(Transient, ReplicatedUsing=OnRep_BurstCounter)
-	int32 BurstCounter;
-
 	/** Handle for efficient management of OnEquipFinished timer */
 	FTimerHandle TimerHandle_OnEquipFinished;
 
@@ -444,8 +440,8 @@ protected:
 	UFUNCTION()
 	void OnRep_MyPawn();
 
-	UFUNCTION()
-	void OnRep_BurstCounter();
+	UFUNCTION(reliable, netmulticast, WithValidation)
+	void MulticastSimulateFireFX();
 
 	UFUNCTION()
 	void OnRep_Reload();
