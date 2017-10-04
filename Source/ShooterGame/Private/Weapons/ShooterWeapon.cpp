@@ -29,7 +29,7 @@ AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Su
 	Mesh3P->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	Mesh3P->SetCollisionResponseToChannel(COLLISION_PROJECTILE, ECR_Block);
 	Mesh3P->SetupAttachment(Mesh1P);
-
+	
 	bLoopedMuzzleFX = false;
 	bLoopedFireAnim = false;
 	bPlayingFireAnim = false;
@@ -53,6 +53,8 @@ AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Su
 void AShooterWeapon::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	
 
 	if (WeaponConfig.InitialClips > 0)
 	{
@@ -510,7 +512,7 @@ void AShooterWeapon::SetWeaponState(EWeaponState::Type NewState)
 	{
 		OnBurstStarted();
 	}
-	PrintString(GetWorld(), CurrentState, "SetWeaponState", FLinearColor::Red);
+	//PrintString(GetWorld(), CurrentState, "SetWeaponState", FLinearColor::Red);
 }
 
 void AShooterWeapon::DetermineWeaponState()
@@ -751,7 +753,6 @@ void AShooterWeapon::MulticastSimulateFireFX_Implementation() {
 	if (GetNetMode() == NM_Client && !(MyPawn && MyPawn->IsLocallyControlled()))
 	{
 		SimulateWeaponFire();
-		PrintString(GetWorld(), CurrentState, "SimulateWeaponFire CLIENT !LOCAL", FLinearColor::Blue);
 	}
 }
 	
@@ -773,7 +774,6 @@ void AShooterWeapon::SimulateWeaponFire()
 				AController* PlayerCon = MyPawn->GetController();				
 				if( PlayerCon != NULL )
 				{
-					PrintString(GetWorld(), CurrentState, "SimulateWeaponFire Call SELF", FLinearColor::Blue);
 					Mesh1P->GetSocketLocation(MuzzleAttachPoint);
 					MuzzlePSC = UGameplayStatics::SpawnEmitterAttached(MuzzleFX, Mesh1P, MuzzleAttachPoint);
 					MuzzlePSC->bOwnerNoSee = false;
@@ -787,7 +787,6 @@ void AShooterWeapon::SimulateWeaponFire()
 			}
 			else
 			{
-				PrintString(GetWorld(), CurrentState, "SimulateWeaponFire Call OTHER", FLinearColor::Blue);
 				UGameplayStatics::SpawnEmitterAttached(MuzzleFX, UseWeaponMesh, MuzzleAttachPoint);
 			}
 		
@@ -798,9 +797,14 @@ void AShooterWeapon::SimulateWeaponFire()
 	AShooterPlayerController* PC = (MyPawn != NULL) ? Cast<AShooterPlayerController>(MyPawn->Controller) : NULL;
 	if (PC != NULL && PC->IsLocalController())
 	{
-		if (FireCameraShake != NULL)
+
+		if (CustomCameraShake != NULL)
 		{
-			PC->ClientPlayCameraShake(FireCameraShake, 1);
+			PC->ClientPlayCameraShake(CustomCameraShake, 1);
+			if ((!bRefiring && WeaponConfig.WeaponRecoil.bDisplacementOnSingleShot) || (bRefiring && WeaponConfig.WeaponRecoil.bDisplacementOnFullAutoShot)) {
+				MyPawn->AddControllerPitchInput(-WeaponConfig.WeaponRecoil.VerticalDisplacement);
+				MyPawn->AddControllerYawInput(FMath::RandRange(-WeaponConfig.WeaponRecoil.HorizontalDisplacementRangeMaxAbsoluteValue, WeaponConfig.WeaponRecoil.HorizontalDisplacementRangeMaxAbsoluteValue));
+			}
 		}
 		if (FireForceFeedback != NULL)
 		{
@@ -811,7 +815,6 @@ void AShooterWeapon::SimulateWeaponFire()
 
 void AShooterWeapon::StopSimulatingWeaponFire()
 {
-	PrintString(GetWorld(), CurrentState, "StopSimulateWeaponFire Call", FLinearColor::Green);
 	if (bLoopedMuzzleFX )
 	{
 		if( MuzzlePSC != NULL )

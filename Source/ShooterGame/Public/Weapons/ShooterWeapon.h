@@ -26,6 +26,52 @@ namespace EWeaponState
 }
 
 USTRUCT()
+struct FWeaponRecoil
+{
+	GENERATED_USTRUCT_BODY()
+
+	/** amount to vertically displace camera on shot */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		float VerticalDisplacement;
+
+	/** amount to vertically displace camera on shot */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		float HorizontalDisplacementRangeMaxAbsoluteValue;
+
+	/** amount to vertically bounce camera */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		float VerticalCameraBounceAmplitude;
+
+	/** amplitude to shake camera */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		float CameraShakeAmplitude;
+
+	/** frequency to shake camera */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		float CameraShakeFrequency;
+
+	/** rotate camera vertically on single shot */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		bool bDisplacementOnSingleShot;
+
+	/** rotate camera vertically on full auto shots */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		bool bDisplacementOnFullAutoShot;
+
+	/** defaults */
+	FWeaponRecoil()
+	{
+		VerticalDisplacement = 2.0f;
+		HorizontalDisplacementRangeMaxAbsoluteValue = 1.0f;
+		VerticalCameraBounceAmplitude = 20.0f;
+		CameraShakeAmplitude = 0.3f;
+		CameraShakeFrequency = 50.0f;
+		bDisplacementOnSingleShot = false;
+		bDisplacementOnFullAutoShot = true;
+	}
+};
+
+USTRUCT()
 struct FWeaponData
 {
 	GENERATED_USTRUCT_BODY()
@@ -62,6 +108,10 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 		bool bSingleFire;
 
+	/** Weapon recoil information */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		FWeaponRecoil WeaponRecoil;
+
 	/** defaults */
 	FWeaponData()
 	{
@@ -73,6 +123,7 @@ struct FWeaponData
 		TimeBetweenShots = 0.2f;
 		NoAnimReloadDuration = 1.0f;
 		bSingleFire = false;
+		WeaponRecoil = FWeaponRecoil();
 	}
 };
 
@@ -313,7 +364,7 @@ protected:
 
 	/** camera shake on firing */
 	UPROPERTY(EditDefaultsOnly, Category=Effects)
-	TSubclassOf<UCameraShake> FireCameraShake;
+	TSubclassOf<UCameraShake> CustomCameraShake;
 
 	/** force feedback effect to play when the weapon is fired */
 	UPROPERTY(EditDefaultsOnly, Category=Effects)
