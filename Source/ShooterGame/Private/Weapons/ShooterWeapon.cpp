@@ -361,6 +361,14 @@ void AShooterWeapon::GiveAmmo(int AddAmount)
 	{
 		BotAI->CheckAmmo(this);
 	}
+	
+	// start reload if clip was empty
+	if (GetCurrentAmmoInClip() <= 0 &&
+		CanReload() &&
+		MyPawn->GetWeapon() == this)
+	{
+		ClientStartReload();
+	}
 }
 
 void AShooterWeapon::UseAmmo()
@@ -399,7 +407,7 @@ void AShooterWeapon::UseAmmo()
 
 void AShooterWeapon::HandleFiring()
 {
-	if ((GetCurrentAmmoInClip() > 0 || HasInfiniteClip() || HasInfiniteAmmo()) && CanFire())
+	if ((CurrentAmmoInClip > 0 || HasInfiniteClip() || HasInfiniteAmmo()) && CanFire())
 	{
 		if (GetNetMode() != NM_DedicatedServer)
 		{
@@ -416,9 +424,13 @@ void AShooterWeapon::HandleFiring()
 			BurstCounter++;
 		}
 	}
+	else if (CanReload())
+	{
+		StartReload();
+	}
 	else if (MyPawn && MyPawn->IsLocallyControlled())
 	{
-		if (GetCurrentAmmoInClip() == 0 && !bRefiring)
+		if (GetCurrentAmmo() == 0 && !bRefiring)
 		{
 			PlayWeaponSound(OutOfAmmoSound);
 			AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(MyPawn->Controller);
@@ -445,15 +457,9 @@ void AShooterWeapon::HandleFiring()
 		}
 
 		// reload after firing last round
-		if (GetCurrentAmmoInClip() <= 0)
+		if (CurrentAmmoInClip <= 0 && CanReload())
 		{
-			PlayWeaponSound(OutOfAmmoSound);
-			AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(MyPawn->Controller);
-			AShooterHUD* MyHUD = MyPC ? Cast<AShooterHUD>(MyPC->GetHUD()) : NULL;
-			if (MyHUD)
-			{
-				MyHUD->NotifyOutOfAmmo();
-			}
+			StartReload();
 		}
 
 		// setup refire timer
