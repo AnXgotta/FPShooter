@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Weapons/ShooterWeapon.h"
+#include "ShooterWeapon.h"
 #include "ShooterBallisticTrace.h"
 #include "ShooterWeapon_Ballistic.generated.h"
 

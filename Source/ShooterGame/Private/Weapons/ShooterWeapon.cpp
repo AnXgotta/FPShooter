@@ -9,26 +9,33 @@
 
 AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+
+	RootComponent = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("Root"));
+
 	Mesh1P = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("WeaponMesh1P"));
 	Mesh1P->MeshComponentUpdateFlag = EMeshComponentUpdateFlag::OnlyTickPoseWhenRendered;
 	Mesh1P->bReceivesDecals = false;
 	Mesh1P->CastShadow = false;
+	Mesh1P->bOnlyOwnerSee = true;
 	Mesh1P->SetCollisionObjectType(ECC_WorldDynamic);
 	Mesh1P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Mesh1P->SetCollisionResponseToAllChannels(ECR_Ignore);
-	RootComponent = Mesh1P;
+	Mesh1P->SetupAttachment(RootComponent);
+	Mesh1P->AddRelativeRotation(FRotator(0.0f, 0.0f, -90.0f));
 
 	Mesh3P = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("WeaponMesh3P"));
 	Mesh3P->MeshComponentUpdateFlag = EMeshComponentUpdateFlag::OnlyTickPoseWhenRendered;
 	Mesh3P->bReceivesDecals = false;
 	Mesh3P->CastShadow = true;
+	Mesh3P->bOwnerNoSee = true;
 	Mesh3P->SetCollisionObjectType(ECC_WorldDynamic);
 	Mesh3P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Mesh3P->SetCollisionResponseToAllChannels(ECR_Ignore);
 	Mesh3P->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Block);
 	Mesh3P->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	Mesh3P->SetCollisionResponseToChannel(COLLISION_PROJECTILE, ECR_Block);
-	Mesh3P->SetupAttachment(Mesh1P);
+	Mesh3P->SetupAttachment(RootComponent);
+	Mesh3P->AddRelativeRotation(FRotator(0.0f, 0.0f, -90.0f));
 	
 	bLoopedMuzzleFX = false;
 	bLoopedFireAnim = false;
