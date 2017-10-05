@@ -75,7 +75,6 @@ void AShooterBallisticTrace::PerformBallisticTrace() {
 		const FHitResult Impact = BallisticsTrace(TraceStart->GetComponentLocation(), TraceEnd->GetComponentLocation());
 
 			if (Impact.GetActor()) {
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Trace Hit"));
 				UWorld* World = GetWorld();
 				if (World) {
 					World->GetTimerManager().ClearTimer(BallisticTraceTimerHandle);
