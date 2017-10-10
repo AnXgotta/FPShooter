@@ -370,15 +370,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category=Effects)
 	UForceFeedbackEffect *FireForceFeedback;
 
-	/** single fire sound (bLoopedFireSound not set) */
+	/** single fire sound */
 	UPROPERTY(EditDefaultsOnly, Category=Sound)
 	USoundCue* FireSound;
 
-	/** looped fire sound (bLoopedFireSound set) */
-	UPROPERTY(EditDefaultsOnly, Category=Sound)
-	USoundCue* FireLoopSound;
-
-	/** finished burst sound (bLoopedFireSound set) */
+	/** finished burst sound */
 	UPROPERTY(EditDefaultsOnly, Category=Sound)
 	USoundCue* FireFinishSound;
 
@@ -405,21 +401,6 @@ protected:
 	/** fire animations */
 	UPROPERTY(EditDefaultsOnly, Category=Animation)
 	FWeaponAnim FireAnim;
-
-	/** is muzzle FX looped? */
-	UPROPERTY(EditDefaultsOnly, Category=Effects)
-	uint32 bLoopedMuzzleFX : 1;
-
-	/** is fire sound looped? */
-	UPROPERTY(EditDefaultsOnly, Category=Sound)
-	uint32 bLoopedFireSound : 1;
-
-	/** is fire animation looped? */
-	UPROPERTY(EditDefaultsOnly, Category=Animation)
-	uint32 bLoopedFireAnim : 1;
-
-	/** is fire animation playing? */
-	uint32 bPlayingFireAnim : 1;
 
 	/** is weapon currently equipped? */
 	uint32 bIsEquipped : 1;

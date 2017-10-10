@@ -37,9 +37,6 @@ AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Su
 	Mesh3P->SetupAttachment(RootComponent);
 	Mesh3P->AddRelativeRotation(FRotator(0.0f, 0.0f, -90.0f));
 	
-	bLoopedMuzzleFX = false;
-	bLoopedFireAnim = false;
-	bPlayingFireAnim = false;
 	bIsEquipped = false;
 	bWantsToFire = false;
 	bPendingReload = false;
@@ -822,33 +819,7 @@ void AShooterWeapon::SimulateWeaponFire()
 
 void AShooterWeapon::StopSimulatingWeaponFire()
 {
-	if (bLoopedMuzzleFX )
-	{
-		if( MuzzlePSC != NULL )
-		{
-			MuzzlePSC->DeactivateSystem();
-			MuzzlePSC = NULL;
-		}
-		if( MuzzlePSCSecondary != NULL )
-		{
-			MuzzlePSCSecondary->DeactivateSystem();
-			MuzzlePSCSecondary = NULL;
-		}
-	}
 
-	if (bLoopedFireAnim && bPlayingFireAnim)
-	{
-		StopWeaponAnimation(FireAnim);
-		bPlayingFireAnim = false;
-	}
-
-	if (FireAC)
-	{
-		FireAC->FadeOut(0.1f, 0.0f);
-		FireAC = NULL;
-
-		PlayWeaponSound(FireFinishSound);
-	}
 }
 
 void AShooterWeapon::GetLifetimeReplicatedProps( TArray< FLifetimeProperty > & OutLifetimeProps ) const
