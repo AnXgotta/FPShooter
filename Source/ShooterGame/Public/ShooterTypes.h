@@ -159,3 +159,51 @@ public:
 	void SetDamageEvent(const FDamageEvent& DamageEvent);
 	void EnsureReplication();
 };
+
+UENUM()
+namespace EShooterItemType
+{
+	enum Type
+	{
+		Weapon,
+		WeaponAttachment,
+		Consumable,
+		PlayerAttachment
+	};
+}
+
+USTRUCT()
+struct FShooterInventoryItem
+{
+	GENERATED_USTRUCT_BODY()
+
+		UPROPERTY()
+		FName ID;
+
+	UPROPERTY()
+		UTexture2D* Icon;
+
+	UPROPERTY()
+		FName Name;
+
+	UPROPERTY()
+		FString Description;
+
+	UPROPERTY()
+		TEnumAsByte<EShooterItemType::Type> ItemType;
+
+	UPROPERTY()
+		int8 Amount; // -127 to 127
+
+	UPROPERTY()
+		bool bIsStackable;
+
+	UPROPERTY()
+		int8 MaxStackable; // -127 to 127
+
+public:
+	FShooterInventoryItem() {
+
+	}
+
+};
