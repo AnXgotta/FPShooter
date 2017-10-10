@@ -14,15 +14,16 @@ class IShooterInventoryInterface
 	GENERATED_IINTERFACE_BODY()
 
 public:
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IInventory")
 		FShooterInventoryContainer GetContainerProperties();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IInventory")
-		AShooterInventoryComponent GetContainerInventory();
+		UShooterInventoryComponent* GetContainerInventory();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IInventory")
-		TArray<APlayerState> GetPlayersViewing();
+		TArray<APlayerState*> GetPlayersViewing();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IInventory")
 		bool CanStoreItems();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IInventory")
-		FString ContainerLooted();
+		bool ContainerLooted();
 
 };

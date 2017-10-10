@@ -24,17 +24,19 @@ public:
 	// Sets default values for this component's properties
 	UShooterInventoryComponent();
 
-protected:
+public:
 
 	void InitializeInventory(float InventoryWeight);
-
-public:	
 	
 	FShooterInventoryItem* GetInventoryItem(FName& DesiredItemID);
 
 	bool SetInventoryItem(FShooterInventoryItem InventoryItem);
 
 	bool ClearInventoryItem(FName& DesiredItemID);
+
+	FORCEINLINE void ModifyInventoryMaxSize(float Amount) {
+		InventoryMaxWeight += Amount;
+	}
 
 	FORCEINLINE TArray<FShooterInventoryItem> GetInventory() { return Inventory; };
 	
