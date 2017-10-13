@@ -160,7 +160,170 @@ public:
 	void EnsureReplication();
 };
 
-UENUM()
+USTRUCT()
+struct FWeaponRecoil
+{
+	GENERATED_USTRUCT_BODY()
+
+		/** amount to vertically displace camera on shot */
+		UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		float VerticalDisplacement;
+
+	/** amount to vertically displace camera on shot */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		float HorizontalDisplacementRangeMaxAbsoluteValue;
+
+	/** amount to vertically bounce camera */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		float VerticalCameraBounceAmplitude;
+
+	/** amplitude to shake camera */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		float CameraShakeAmplitude;
+
+	/** frequency to shake camera */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		float CameraShakeFrequency;
+
+	/** rotate camera vertically on single shot */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		bool bDisplacementOnSingleShot;
+
+	/** rotate camera vertically on full auto shots */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
+		bool bDisplacementOnFullAutoShot;
+
+	/** defaults */
+	FWeaponRecoil()
+	{
+		VerticalDisplacement = 2.0f;
+		HorizontalDisplacementRangeMaxAbsoluteValue = 1.0f;
+		VerticalCameraBounceAmplitude = 20.0f;
+		CameraShakeAmplitude = 0.3f;
+		CameraShakeFrequency = 50.0f;
+		bDisplacementOnSingleShot = false;
+		bDisplacementOnFullAutoShot = true;
+	}
+};
+
+USTRUCT()
+struct FWeaponData
+{
+	GENERATED_USTRUCT_BODY()
+
+		/** inifite ammo for reloads */
+		UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		bool bInfiniteAmmo;
+
+	/** infinite ammo in clip, no reload required */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		bool bInfiniteClip;
+
+	/** max ammo */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 MaxAmmo;
+
+	/** clip size */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 AmmoPerClip;
+
+	/** initial clips */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 InitialClips;
+
+	/** time between two consecutive shots */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float TimeBetweenShots;
+
+	/** failsafe reload duration if weapon doesn't have any animation for it */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float NoAnimReloadDuration;
+
+	/** is weapon single fire */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		bool bSingleFire;
+
+	/** Weapon recoil information */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		FWeaponRecoil WeaponRecoil;
+
+	/** defaults */
+	FWeaponData()
+	{
+		bInfiniteAmmo = false;
+		bInfiniteClip = false;
+		MaxAmmo = 100;
+		AmmoPerClip = 20;
+		InitialClips = 4;
+		TimeBetweenShots = 0.2f;
+		NoAnimReloadDuration = 1.0f;
+		bSingleFire = false;
+		WeaponRecoil = FWeaponRecoil();
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FBallisticWeaponData
+{
+	GENERATED_USTRUCT_BODY()
+
+		/** muzzle velocity (M/s) */
+		UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float MuzzleVelocity;
+
+	/** Zeroing (Degrees) */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float VerticalRotation;
+
+	/** base weapon spread (degrees) */
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+		float WeaponSpread;
+
+	/** targeting spread modifier */
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+		float TargetingSpreadMod;
+
+	/** continuous firing: spread increment */
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+		float FiringSpreadIncrement;
+
+	/** continuous firing: max increment */
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
+		float FiringSpreadMax;
+
+	/** damage amount */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		int32 HitDamage;
+
+	/** type of damage */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		TSubclassOf<UDamageType> DamageType;
+
+	/** hit verification: scale for bounding box of hit actor */
+	UPROPERTY(EditDefaultsOnly, Category = HitVerification)
+		float ClientSideHitLeeway;
+
+	/** hit verification: threshold for dot product between view direction and hit direction */
+	UPROPERTY(EditDefaultsOnly, Category = HitVerification)
+		float AllowedViewDotHitDir;
+
+	/** defaults */
+	FBallisticWeaponData()
+	{
+		MuzzleVelocity = 600.0f;
+		VerticalRotation = 0.0f;
+		WeaponSpread = 5.0f;
+		TargetingSpreadMod = 0.25f;
+		FiringSpreadIncrement = 1.0f;
+		FiringSpreadMax = 10.0f;
+		HitDamage = 10;
+		DamageType = UDamageType::StaticClass();
+		ClientSideHitLeeway = 200.0f;
+		AllowedViewDotHitDir = 0.8f;
+	}
+};
+
+UENUM(BlueprintType)
 namespace EShooterItemType
 {
 	enum Type
@@ -168,11 +331,11 @@ namespace EShooterItemType
 		Weapon,
 		WeaponAttachment,
 		Consumable,
-		PlayerAttachment
+		Ammo
 	};
 }
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FShooterInventoryItem
 {
 	GENERATED_USTRUCT_BODY()
@@ -203,6 +366,80 @@ struct FShooterInventoryItem
 
 public:
 	FShooterInventoryItem() {
+
+	}
+
+};
+
+USTRUCT(BlueprintType)
+struct FInventorySlotInformation
+{
+	GENERATED_USTRUCT_BODY()
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		UTexture2D* Icon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		FName Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		TEnumAsByte<EShooterItemType::Type> ItemType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		int Amount;
+
+
+public:
+	FInventorySlotInformation() {
+
+	}
+
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryItemToolTip
+{
+	GENERATED_USTRUCT_BODY()
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		UTexture2D* Icon;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		FName Name;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+			FString Description;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+			TEnumAsByte<EShooterItemType::Type> ItemType;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+			int Amount;
+
+
+public:
+	FInventoryItemToolTip() {
+
+	}
+
+};
+
+USTRUCT(BlueprintType)
+struct FShooterInventoryContainer
+{
+	GENERATED_USTRUCT_BODY()
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		FName Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		bool bIsStorageContainer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		float MaxWeight;
+
+public:
+	FShooterInventoryContainer() {
 
 	}
 

@@ -15,27 +15,26 @@ UShooterInventoryComponent::UShooterInventoryComponent()
 }
 
 
-void UShooterInventoryComponent::InitializeInventory(float MaxWeight) {
-	InventoryWeight = MaxWeight;
+void UShooterInventoryComponent::InitializeInventory(float NewInventoryMaxWeight) {
+	InventoryMaxWeight = NewInventoryMaxWeight;
 	InventoryWeight = 0;
 	Inventory.Empty();	
 }
 
-FShooterInventoryItem* UShooterInventoryComponent::GetInventoryItem(FName& DesiredItemID) {
+FShooterInventoryItem UShooterInventoryComponent::GetInventoryItem(FName& DesiredItemID) {
 
 	if (Inventory.Num() < 0) {
-		return nullptr;
+		return FShooterInventoryItem();
 	} 
 
-	FShooterInventoryItem* desiredItem = nullptr;
 
 	for (int i = 0; i < Inventory.Num(); i++) {
 		if (Inventory[i].ID.IsEqual(DesiredItemID)) {
-			desiredItem = &Inventory[i];
+			return Inventory[i];
 		}
 	}
 
-	return desiredItem;
+	return FShooterInventoryItem();
 }
 
 bool UShooterInventoryComponent::SetInventoryItem(FShooterInventoryItem InventoryItem) {
@@ -60,4 +59,12 @@ bool UShooterInventoryComponent::ClearInventoryItem(FName& DesiredItemID) {
 	Inventory.RemoveAt(DesiredItemIndex);
 
 	return true;
+}
+
+void UShooterInventoryComponent::ModifyInventoryMaxSize(float Amount) {
+	InventoryMaxWeight += Amount;
+}
+
+TArray<FShooterInventoryItem> UShooterInventoryComponent::GetInventory() { 
+	return Inventory;
 }

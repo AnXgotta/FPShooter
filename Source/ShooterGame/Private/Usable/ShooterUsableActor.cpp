@@ -10,6 +10,7 @@ AShooterUsableActor::AShooterUsableActor()
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	StaticMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	StaticMesh->SetCollisionResponseToChannel(ECC_GameTraceChannel4, ECollisionResponse::ECR_Block);
 
 	bReplicates = true;
 

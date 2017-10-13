@@ -8,36 +8,40 @@
 #include "ShooterInventoryComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SHOOTERGAME_API UShooterInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-		float InventoryWeight;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-		float InventoryMaxWeight;
-
+		
 		TArray<FShooterInventoryItem> Inventory;
 
 public:	
 	// Sets default values for this component's properties
 	UShooterInventoryComponent();
 
-public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	float InventoryWeight;
 
-	void InitializeInventory(float InventoryWeight);
-	
-	FShooterInventoryItem* GetInventoryItem(FName& DesiredItemID);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+		float InventoryMaxWeight;
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void InitializeInventory(float NewInventoryMaxWeight);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	FShooterInventoryItem GetInventoryItem(FName& DesiredItemID);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool SetInventoryItem(FShooterInventoryItem InventoryItem);
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	bool ClearInventoryItem(FName& DesiredItemID);
 
-	FORCEINLINE void ModifyInventoryMaxSize(float Amount) {
-		InventoryMaxWeight += Amount;
-	}
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+		void ModifyInventoryMaxSize(float Amount);
 
-	FORCEINLINE TArray<FShooterInventoryItem> GetInventory() { return Inventory; };
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	TArray<FShooterInventoryItem> GetInventory();
 	
 };

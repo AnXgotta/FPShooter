@@ -56,6 +56,7 @@ AShooterPlayerController::AShooterPlayerController(const FObjectInitializer& Obj
 
 	ServerSayString = TEXT("Say");
 	ShooterFriendUpdateTimer = 0.0f;
+	LineTraceForInteractionTimer = 0.0f;
 	bHasSentStartEvents = false;
 }
 
@@ -65,10 +66,10 @@ void AShooterPlayerController::SetupInputComponent()
 
 	// UI input
 	InputComponent->BindAction("InGameMenu", IE_Pressed, this, &AShooterPlayerController::OnToggleInGameMenu);
-	InputComponent->BindAction("Scoreboard", IE_Pressed, this, &AShooterPlayerController::OnShowScoreboard);
-	InputComponent->BindAction("Scoreboard", IE_Released, this, &AShooterPlayerController::OnHideScoreboard);
-	InputComponent->BindAction("ConditionalCloseScoreboard", IE_Pressed, this, &AShooterPlayerController::OnConditionalCloseScoreboard);
-	InputComponent->BindAction("ToggleScoreboard", IE_Pressed, this, &AShooterPlayerController::OnToggleScoreboard);
+	//InputComponent->BindAction("Scoreboard", IE_Pressed, this, &AShooterPlayerController::OnShowScoreboard);
+	//InputComponent->BindAction("Scoreboard", IE_Released, this, &AShooterPlayerController::OnHideScoreboard);
+	//InputComponent->BindAction("ConditionalCloseScoreboard", IE_Pressed, this, &AShooterPlayerController::OnConditionalCloseScoreboard);
+	//InputComponent->BindAction("ToggleScoreboard", IE_Pressed, this, &AShooterPlayerController::OnToggleScoreboard);
 
 	// voice chat
 	InputComponent->BindAction("PushToTalk", IE_Pressed, this, &APlayerController::StartTalking);
@@ -83,11 +84,22 @@ void AShooterPlayerController::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	FShooterStyle::Initialize();
 	ShooterFriendUpdateTimer = 0;
+	LineTraceForInteractionTimer = 0;
 }
 
 void AShooterPlayerController::TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction)
 {
 	Super::TickActor(DeltaTime, TickType, ThisTickFunction);
+
+
+	if (LineTraceForInteractionTimer > 0) {
+		LineTraceForInteractionTimer -= DeltaTime;
+	}
+	else {
+		LineTraceForInteraction();
+	}
+
+
 
 	if (IsGameMenuVisible())
 	{
@@ -120,7 +132,7 @@ void AShooterPlayerController::TickActor(float DeltaTime, enum ELevelTick TickTy
 			AShooterHUD* ShooterHUD = GetShooterHUD();
 			if (ShooterHUD)
 			{
-				ShooterHUD->ShowScoreboard(true, true);
+				//ShooterHUD->ShowScoreboard(true, true);
 			}
 		}
 	}
@@ -469,42 +481,42 @@ void AShooterPlayerController::OnToggleInGameMenu()
 	}
 }
 
-void AShooterPlayerController::OnConditionalCloseScoreboard()
-{
-	AShooterHUD* ShooterHUD = GetShooterHUD();
-	if(ShooterHUD && ( ShooterHUD->IsMatchOver() == false ))
-	{
-		ShooterHUD->ConditionalCloseScoreboard();
-	}
-}
-
-void AShooterPlayerController::OnToggleScoreboard()
-{
-	AShooterHUD* ShooterHUD = GetShooterHUD();
-	if(ShooterHUD && ( ShooterHUD->IsMatchOver() == false ))
-	{
-		ShooterHUD->ToggleScoreboard();
-	}
-}
-
-void AShooterPlayerController::OnShowScoreboard()
-{
-	AShooterHUD* ShooterHUD = GetShooterHUD();
-	if(ShooterHUD)
-	{
-		ShooterHUD->ShowScoreboard(true);
-	}
-}
-
-void AShooterPlayerController::OnHideScoreboard()
-{
-	AShooterHUD* ShooterHUD = GetShooterHUD();
-	// If have a valid match and the match is over - hide the scoreboard
-	if( (ShooterHUD != NULL ) && ( ShooterHUD->IsMatchOver() == false ) )
-	{
-		ShooterHUD->ShowScoreboard(false);
-	}
-}
+//void AShooterPlayerController::OnConditionalCloseScoreboard()
+//{
+//	AShooterHUD* ShooterHUD = GetShooterHUD();
+//	if(ShooterHUD && ( ShooterHUD->IsMatchOver() == false ))
+//	{
+//		ShooterHUD->ConditionalCloseScoreboard();
+//	}
+//}
+//
+//void AShooterPlayerController::OnToggleScoreboard()
+//{
+//	AShooterHUD* ShooterHUD = GetShooterHUD();
+//	if(ShooterHUD && ( ShooterHUD->IsMatchOver() == false ))
+//	{
+//		ShooterHUD->ToggleScoreboard();
+//	}
+//}
+//
+//void AShooterPlayerController::OnShowScoreboard()
+//{
+//	AShooterHUD* ShooterHUD = GetShooterHUD();
+//	if(ShooterHUD)
+//	{
+//		ShooterHUD->ShowScoreboard(true);
+//	}
+//}
+//
+//void AShooterPlayerController::OnHideScoreboard()
+//{
+//	AShooterHUD* ShooterHUD = GetShooterHUD();
+//	// If have a valid match and the match is over - hide the scoreboard
+//	if( (ShooterHUD != NULL ) && ( ShooterHUD->IsMatchOver() == false ) )
+//	{
+//		ShooterHUD->ShowScoreboard(false);
+//	}
+//}
 
 bool AShooterPlayerController::IsGameMenuVisible() const
 {
@@ -548,7 +560,7 @@ void AShooterPlayerController::ClientGameStarted_Implementation()
 	if (ShooterHUD)
 	{
 		ShooterHUD->SetMatchState(EShooterMatchState::Playing);
-		ShooterHUD->ShowScoreboard(false);
+		//ShooterHUD->ShowScoreboard(false);
 	}
 	bGameEndedFrame = false;
 
@@ -649,7 +661,7 @@ void AShooterPlayerController::ClientEndOnlineGame_Implementation()
 
 void AShooterPlayerController::HandleReturnToMainMenu()
 {
-	OnHideScoreboard();
+	//OnHideScoreboard();
 	CleanupSessionOnReturnToMenu();
 }
 
@@ -1232,7 +1244,36 @@ void AShooterPlayerController::PreClientTravel(const FString& PendingURL, ETrave
 		if (ShooterHUD != nullptr)
 		{
 			// Passing true to bFocus here ensures that focus is returned to the game viewport.
-			ShooterHUD->ShowScoreboard(false, true);
+			//ShooterHUD->ShowScoreboard(false, true);
 		}
 	}
+}
+
+
+// INTERATION
+
+bool AShooterPlayerController::LineTraceForInteraction() {
+	FVector StartTrace = RootComponent->GetComponentLocation();
+	FVector EndTrace = StartTrace + (RootComponent->GetForwardVector() * 500.0f);
+	
+	DrawDebugLine(
+		GetWorld(),
+		StartTrace,
+		EndTrace,
+		FColor(255, 0, 0),
+		true, -1, 0,
+		2
+	);
+
+	// Perform trace to retrieve hit info
+	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(InteractionTrace), true, Instigator);
+
+	FHitResult Hit(ForceInit);
+	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, COLLISION_INTERACTABLE, TraceParams);
+
+	if (Hit.GetActor()) {
+		OnInteractableActorFocused(Hit.GetActor());
+	}
+
+	return false;
 }
