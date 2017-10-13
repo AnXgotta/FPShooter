@@ -6,7 +6,8 @@
 
 
 AShooterWorldActor_Weapon::AShooterWorldActor_Weapon() {
-
+	// outliner layer for highlighting actor
+	Mesh->SetCustomDepthStencilValue(1);
 }
 
 bool AShooterWorldActor_Weapon::OnPickUp_Implementation(AShooterPlayerController* PlayerController) {
@@ -30,17 +31,16 @@ bool AShooterWorldActor_Weapon::OnActorInteracted_Implementation(APlayerControll
 }
 
 bool AShooterWorldActor_Weapon::BeginOutlineFocus_Implementation() {
-
+	Mesh->SetRenderCustomDepth(true);
 	return true;
 }
 
 bool AShooterWorldActor_Weapon::AShooterWorldActor_Weapon::EndOutlineFocus_Implementation() {
-
+	Mesh->SetRenderCustomDepth(false);
 	return true;
 }
 
 bool AShooterWorldActor_Weapon::GetIsActorInteractable_Implementation() {
-
 	return true;
 }
 
