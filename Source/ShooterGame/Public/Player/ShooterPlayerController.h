@@ -287,32 +287,6 @@ private:
 
 
 	
-		// INTERACTION
-
-private:
-
-	float LineTraceForInteractionTimer;
-
-	
-
-
-public:
-
-	UPROPERTY(BlueprintReadWrite, Category = "Interaction")
-		AActor* CurrentInteractingActor;
-
-	UFUNCTION(BlueprintCallable, Category = "Interactions")
-		bool LineTraceForInteraction();
-
-			UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
-			void OnInteractableActorFocused(AActor* FocusedActor);
-
-		UFUNCTION(BlueprintImplementableEvent, Category = "PUPD")
-			void OnItemPickUp(AActor* PickedUpItem);
-
-		UFUNCTION(BlueprintImplementableEvent, Category = "PUPD")
-			void OnItemPutDown(AActor* PutDownItem);
-
 
 };
 

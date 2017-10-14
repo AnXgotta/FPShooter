@@ -12,7 +12,7 @@
  * 
  */
 UCLASS()
-class SHOOTERGAME_API AShooterWorldActor_Weapon : public AShooterWorldActorBase, public IShooterInteractableActorInterface, public IShooterItemPUPDInterface
+class SHOOTERGAME_API AShooterWorldActor_Weapon : public AShooterWorldActorBase, public IShooterItemPUPDInterface
 {
 	GENERATED_BODY()
 	
@@ -24,6 +24,11 @@ class SHOOTERGAME_API AShooterWorldActor_Weapon : public AShooterWorldActorBase,
 	UPROPERTY(EditDefaultsOnly, Category = Config)
 	TArray<FText> AttachmentNameIds;
 
+protected:
+
+	UFUNCTION()
+		virtual void OnWasInteracted() override;
+
 public:
 
 	AShooterWorldActor_Weapon();
@@ -32,30 +37,15 @@ public:
 	FORCEINLINE TArray<FText> GetAttachmentNameIds() { return AttachmentNameIds; }
 	
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "IPUPD")
-		bool OnPickUp(AShooterPlayerController* PlayerController);
-	virtual bool OnPickUp_Implementation(AShooterPlayerController* PlayerController) override;
+		bool OnPickUp(AShooterCharacter* Player);
+	virtual bool OnPickUp_Implementation(AShooterCharacter* Player) override;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "IPUPD")
-		bool OnPutDown(AShooterPlayerController* PlayerController);
-	virtual bool OnPutDown_Implementation(AShooterPlayerController* PlayerController) override;
+		bool OnPutDown(AShooterCharacter* Player);
+	virtual bool OnPutDown_Implementation(AShooterCharacter* Player) override;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		bool OnActorInteracted(APlayerController* PlayerController);
-	virtual bool OnActorInteracted_Implementation(APlayerController* PlayerController) override;
-	
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		bool BeginOutlineFocus();
-	virtual bool BeginOutlineFocus_Implementation() override;
-	
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		bool EndOutlineFocus();
-	virtual bool EndOutlineFocus_Implementation() override;
-	
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		bool GetIsActorInteractable();
-	virtual bool GetIsActorInteractable_Implementation() override;
+		bool OnActorInteracted(AShooterCharacter* Player);
+	virtual bool OnActorInteracted_Implementation(AShooterCharacter* Player) override;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		FString GetInteractActionText();
-	virtual FString GetInteractActionText_Implementation() override;
 };

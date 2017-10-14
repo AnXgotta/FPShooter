@@ -14,7 +14,7 @@ class IShooterInteractableActorInterface
 
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		bool OnActorInteracted(APlayerController* PlayerController);
+		bool OnActorInteracted(AShooterCharacter* Player);
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
 		bool BeginOutlineFocus();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")

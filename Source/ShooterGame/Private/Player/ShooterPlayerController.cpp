@@ -56,7 +56,6 @@ AShooterPlayerController::AShooterPlayerController(const FObjectInitializer& Obj
 
 	ServerSayString = TEXT("Say");
 	ShooterFriendUpdateTimer = 0.0f;
-	LineTraceForInteractionTimer = 0.0f;
 	bHasSentStartEvents = false;
 }
 
@@ -84,22 +83,11 @@ void AShooterPlayerController::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	FShooterStyle::Initialize();
 	ShooterFriendUpdateTimer = 0;
-	LineTraceForInteractionTimer = 0;
 }
 
 void AShooterPlayerController::TickActor(float DeltaTime, enum ELevelTick TickType, FActorTickFunction& ThisTickFunction)
 {
 	Super::TickActor(DeltaTime, TickType, ThisTickFunction);
-
-
-	if (LineTraceForInteractionTimer > 0) {
-		LineTraceForInteractionTimer -= DeltaTime;
-	}
-	else {
-		LineTraceForInteraction();
-	}
-
-
 
 	if (IsGameMenuVisible())
 	{
@@ -1247,33 +1235,4 @@ void AShooterPlayerController::PreClientTravel(const FString& PendingURL, ETrave
 			//ShooterHUD->ShowScoreboard(false, true);
 		}
 	}
-}
-
-
-// INTERATION
-
-bool AShooterPlayerController::LineTraceForInteraction() {
-	FVector StartTrace = RootComponent->GetComponentLocation();
-	FVector EndTrace = StartTrace + (RootComponent->GetForwardVector() * 500.0f);
-	
-	DrawDebugLine(
-		GetWorld(),
-		StartTrace,
-		EndTrace,
-		FColor(255, 0, 0),
-		true, -1, 0,
-		2
-	);
-
-	// Perform trace to retrieve hit info
-	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(InteractionTrace), true, Instigator);
-
-	FHitResult Hit(ForceInit);
-	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, COLLISION_INTERACTABLE, TraceParams);
-
-	if (Hit.GetActor()) {
-		OnInteractableActorFocused(Hit.GetActor());
-	}
-
-	return false;
 }

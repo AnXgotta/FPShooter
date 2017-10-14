@@ -1,6 +1,7 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
 #include "ShooterGame.h"
+#include "ShooterWorldActorBase.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterDamageType.h"
 #include "UI/ShooterHUD.h"
@@ -64,6 +65,9 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
+
+	LineTraceForInteractionTimer = 0.0f;
+
 }
 
 void AShooterCharacter::PostInitializeComponents()
@@ -867,6 +871,9 @@ void AShooterCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AShooterCharacter::OnStartRunning);
 	PlayerInputComponent->BindAction("RunToggle", IE_Pressed, this, &AShooterCharacter::OnStartRunningToggle);
 	PlayerInputComponent->BindAction("Run", IE_Released, this, &AShooterCharacter::OnStopRunning);
+
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AShooterCharacter::OnInteract);
+
 }
 
 
@@ -1027,6 +1034,7 @@ void AShooterCharacter::OnStopRunning()
 	SetRunning(false, false);
 }
 
+
 bool AShooterCharacter::IsRunning() const
 {
 	if (!GetCharacterMovement())
@@ -1081,6 +1089,15 @@ void AShooterCharacter::Tick(float DeltaSeconds)
 		}
 
 		UpdateRunSounds();
+
+
+		if (LineTraceForInteractionTimer > 0) {
+			LineTraceForInteractionTimer -= DeltaSeconds;
+		}
+		else {
+			LineTraceForInteraction();
+		}
+
 	}
 
 	const APlayerController* PC = Cast<APlayerController>(GetController());
@@ -1290,4 +1307,137 @@ void AShooterCharacter::BuildPauseReplicationCheckPoints(TArray<FVector>& Releva
 	RelevancyCheckPoints.Add(FVector(BoundingBox.Max.X, BoundingBox.Max.Y - YDiff, BoundingBox.Max.Z));
 	RelevancyCheckPoints.Add(FVector(BoundingBox.Max.X - XDiff, BoundingBox.Max.Y - YDiff, BoundingBox.Max.Z));
 	RelevancyCheckPoints.Add(BoundingBox.Max);
+}
+
+
+
+// INTERACTION
+
+void AShooterCharacter::OnInteract() {
+	if (!CurrentInteractingActor) {
+		return;
+	}
+	if (IsLocallyControlled()) {
+		GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Interact")));
+		ServerOnInteract();
+	}	
+}
+
+bool AShooterCharacter::ServerOnInteract_Validate() {
+	return true;
+}
+
+void AShooterCharacter::ServerOnInteract_Implementation() {
+	GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Server Interact")));
+	ServerLineTraceForInteraction();
+}
+
+FVector AShooterCharacter::GetTraceStartLocation(const FVector& LookDir) const
+{
+	AShooterPlayerController* PC = Cast<AShooterPlayerController>(GetController());
+
+	FVector OutStartTrace = FVector::ZeroVector;
+
+	if (PC)
+	{
+		// use player's camera
+		FRotator UnusedRot;
+		PC->GetPlayerViewPoint(OutStartTrace, UnusedRot);
+
+		// Adjust trace so there is nothing blocking the ray between the camera and the pawn, and calculate distance from adjusted start
+		OutStartTrace = OutStartTrace + LookDir * ((GetActorLocation() - OutStartTrace) | LookDir);
+	}
+	
+	return OutStartTrace;
+}
+
+FVector AShooterCharacter::GetLookDirection() const
+{
+	AShooterPlayerController* const PlayerController = Cast<AShooterPlayerController>(GetController());
+	FVector FinalAim = FVector::ZeroVector;
+	// If we have a player controller use it for the aim
+	if (PlayerController)
+	{
+		FVector CamLoc;
+		FRotator CamRot;
+		PlayerController->GetPlayerViewPoint(CamLoc, CamRot);
+		FinalAim = CamRot.Vector();
+	}
+	return FinalAim;
+}
+
+
+void AShooterCharacter::ServerLineTraceForInteraction() {
+
+	GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Server Trace 0")));
+	FVector LookDirection = GetLookDirection();
+
+	FVector StartTrace = GetTraceStartLocation(LookDirection);
+	FVector EndTrace = StartTrace + (LookDirection * 300.0f);
+
+	DrawDebugLine(
+		GetWorld(),
+		StartTrace,
+		EndTrace,
+		FColor(255, 0, 0),
+		true, 10.0f, 0,
+		1
+	);
+	// Perform trace to retrieve hit info
+	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(InteractionTrace), true);
+
+	FHitResult Hit(ForceInit);
+	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, COLLISION_INTERACTABLE, TraceParams);
+
+	if (Hit.GetActor()) {
+		AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(Hit.GetActor());
+		if (wActor) {
+			wActor->OnActorInteracted_Implementation(this);
+		}
+	}
+
+	
+}
+
+
+bool AShooterCharacter::LineTraceForInteraction() {
+
+	// server doesn't need to do this until a hit is registered by the client
+	if (!IsLocallyControlled()) {
+		return false;
+	}
+
+	FVector LookDirection = GetLookDirection();
+
+	FVector StartTrace = GetTraceStartLocation(LookDirection);
+	FVector EndTrace = StartTrace + (LookDirection * 300.0f);
+
+	// Perform trace to retrieve hit info
+	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(InteractionTrace), true);
+
+	FHitResult Hit(ForceInit);
+	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, COLLISION_INTERACTABLE, TraceParams);
+
+	if (Hit.GetActor()) {
+
+		if (!CurrentInteractingActor) {
+			CurrentInteractingActor = Hit.GetActor();
+			AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(CurrentInteractingActor);
+			if (wActor) {
+				wActor->BeginOutlineFocus_Implementation();
+			}
+			CurrentInteractingActor = Hit.GetActor();
+		}		
+	}
+	else {
+		if (CurrentInteractingActor) {
+			AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(CurrentInteractingActor);
+			if (wActor) {
+				wActor->EndOutlineFocus_Implementation();
+			}
+			CurrentInteractingActor = nullptr;
+		}
+	}
+
+	return false;
 }

@@ -6,44 +6,31 @@
 
 
 AShooterWorldActor_Weapon::AShooterWorldActor_Weapon() {
-	// outliner layer for highlighting actor
-	Mesh->SetCustomDepthStencilValue(1);
+	Mesh->SetCustomDepthStencilValue(2);
 }
 
-bool AShooterWorldActor_Weapon::OnPickUp_Implementation(AShooterPlayerController* PlayerController) {
-	if (PlayerController) {
-		PlayerController->OnItemPickUp(this);
+bool AShooterWorldActor_Weapon::OnPickUp_Implementation(AShooterCharacter* Player) {
+	if (Player) {
+		Player->OnItemPickUp(this);
 	}
 	return true;
 }
 
-bool AShooterWorldActor_Weapon::OnPutDown_Implementation(AShooterPlayerController* PlayerController) {
-	if (PlayerController) {
-		PlayerController->OnItemPutDown(this);
+bool AShooterWorldActor_Weapon::OnPutDown_Implementation(AShooterCharacter* Player) {
+	if (Player) {
+		Player->OnItemPutDown(this);
 	}
 	return true;
 }
 
-
-bool AShooterWorldActor_Weapon::OnActorInteracted_Implementation(APlayerController* PlayerController) {
-
-	return true;
+void AShooterWorldActor_Weapon::OnWasInteracted() {
+	Super::OnWasInteracted();
+	// play sounds or effects on clients and destroy or whatever
+	// PLAY SOUNDS AND HANDLE OTHER SHIT ON OVERRIDED METHOD
 }
 
-bool AShooterWorldActor_Weapon::BeginOutlineFocus_Implementation() {
-	Mesh->SetRenderCustomDepth(true);
+bool AShooterWorldActor_Weapon::OnActorInteracted_Implementation(AShooterCharacter* Player) {
+	GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Server Interacted Weapon")));
+	Super::OnActorInteracted_Implementation(Player);
 	return true;
-}
-
-bool AShooterWorldActor_Weapon::AShooterWorldActor_Weapon::EndOutlineFocus_Implementation() {
-	Mesh->SetRenderCustomDepth(false);
-	return true;
-}
-
-bool AShooterWorldActor_Weapon::GetIsActorInteractable_Implementation() {
-	return true;
-}
-
-FString AShooterWorldActor_Weapon::GetInteractActionText_Implementation() {
-	return FString(TEXT("Interact"));
 }

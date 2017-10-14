@@ -191,6 +191,11 @@ class AShooterCharacter : public ACharacter
 	/** player released run action */
 	void OnStopRunning();
 
+	void OnInteract();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerOnInteract();
+
 	//////////////////////////////////////////////////////////////////////////
 	// Reading data
 
@@ -469,6 +474,40 @@ protected:
 protected:
 	/** Returns Mesh1P subobject **/
 	FORCEINLINE USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+
+
+	// INTERACTION
+
+private:
+
+	float LineTraceForInteractionTimer;
+
+	FVector GetTraceStartLocation(const FVector& LookDir) const;
+	FVector GetLookDirection() const;
+
+public:
+
+	UPROPERTY(BlueprintReadWrite, Category = "Interaction")
+		AActor* CurrentInteractingActor;
+
+	UFUNCTION(BlueprintCallable, Category = "Interactions")
+		bool LineTraceForInteraction();
+
+	UFUNCTION()
+		void ServerLineTraceForInteraction();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
+		void OnInteractableActorFocused();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "PUPD")
+		void OnItemPickUp(AActor* PickedUpItem);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "PUPD")
+		void OnItemPutDown(AActor* PutDownItem);
+
+
+
+
 };
 
 

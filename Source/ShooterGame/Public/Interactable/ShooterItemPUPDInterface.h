@@ -17,8 +17,8 @@ class IShooterItemPUPDInterface
 public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IPUPD")
-		bool OnPickUp(AShooterPlayerController* PlayerController);
+		bool OnPickUp(AShooterCharacter* Player);
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IPUPD")
-		bool OnPutDown(AShooterPlayerController* PlayerController);
+		bool OnPutDown(AShooterCharacter* Player);
 
 };
