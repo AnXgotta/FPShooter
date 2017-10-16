@@ -80,6 +80,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = WeaponStat)
 		bool bDisplacementOnFullAutoShot;
 
+	/** rotate camera vertically on full auto shots */
+	UPROPERTY(EditAnywhere, Category = WeaponStat)
+		float Weight;
+
 	FWeaponDataTable() {}
 
 };

@@ -16,6 +16,6 @@ class IShooterItemConsumeInterface
 public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IConsume")
-		bool OnConsumeItem();
+		bool OnConsumeItem(AShooterCharacter* Player);
 
 };

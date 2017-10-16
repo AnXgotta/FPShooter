@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ShooterWeapon.h"
 #include "ShooterTypes.h"
 #include "Components/ActorComponent.h"
 #include "ShooterInventoryComponent.generated.h"
@@ -13,18 +14,16 @@ class SHOOTERGAME_API UShooterInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-		
-		TArray<FShooterInventoryItem> Inventory;
+	TArray<FShooterInventoryItem> Inventory;
+	
+
 
 public:	
 	// Sets default values for this component's properties
 	UShooterInventoryComponent();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	float InventoryWeight;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-		float InventoryMaxWeight;
+	float InventoryMaxWeight;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void InitializeInventory(float NewInventoryMaxWeight);
@@ -40,6 +39,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 		void ModifyInventoryMaxSize(float Amount);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+		bool IsSpaceFor(float Weight);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	TArray<FShooterInventoryItem> GetInventory();

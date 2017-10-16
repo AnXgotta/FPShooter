@@ -6,20 +6,20 @@
 
 
 AShooterWorldActor_Weapon::AShooterWorldActor_Weapon() {
-	Mesh->SetCustomDepthStencilValue(2);
+	ItemType = EShooterItemType::Weapon;
+	CustomOutlineDepthValue = 2;
 }
+
 
 bool AShooterWorldActor_Weapon::OnPickUp_Implementation(AShooterCharacter* Player) {
 	if (Player) {
-		Player->OnItemPickUp(this);
+		Player->OnItemPickUp(FName("AK47"));
 	}
 	return true;
 }
 
-bool AShooterWorldActor_Weapon::OnPutDown_Implementation(AShooterCharacter* Player) {
-	if (Player) {
-		Player->OnItemPutDown(this);
-	}
+bool AShooterWorldActor_Weapon::OnPutDown_Implementation() {
+
 	return true;
 }
 

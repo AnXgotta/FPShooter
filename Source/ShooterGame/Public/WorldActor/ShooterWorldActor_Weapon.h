@@ -18,7 +18,7 @@ class SHOOTERGAME_API AShooterWorldActor_Weapon : public AShooterWorldActorBase,
 	
 	/** weapon data */
 	UPROPERTY(EditDefaultsOnly, Category = Config)
-	FText WeaponNameId;
+	FText WeaponId;
 
 	/** attachment data */
 	UPROPERTY(EditDefaultsOnly, Category = Config)
@@ -41,8 +41,8 @@ public:
 	virtual bool OnPickUp_Implementation(AShooterCharacter* Player) override;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "IPUPD")
-		bool OnPutDown(AShooterCharacter* Player);
-	virtual bool OnPutDown_Implementation(AShooterCharacter* Player) override;
+		bool OnPutDown();
+	virtual bool OnPutDown_Implementation() override;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
 		bool OnActorInteracted(AShooterCharacter* Player);

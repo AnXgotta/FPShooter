@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ShooterGame.h"
+#include "ShooterPlayerHUD.h"
 #include "ShooterInventoryManagerComponent.h"
 
 
@@ -20,6 +21,7 @@ void UShooterInventoryManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	
 	// ...
 	
 }
@@ -33,12 +35,156 @@ void UShooterInventoryManagerComponent::BeginPlay()
 //	// ...
 //}
 
-
-
-void UShooterInventoryManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UShooterInventoryManagerComponent, InventorySize);
-
+bool UShooterInventoryManagerComponent::InitializeInventory(AShooterCharacter* NewPawn, float MaxWeight) {
+	Pawn = NewPawn;
+	InventoryComponent = Pawn->GetInventoryComponent();
+	InventoryComponent->InventoryMaxWeight = MaxWeight;
+	AShooterPlayerController* PC = Cast<AShooterPlayerController>(Pawn->GetController());
+	if (PC) {
+		AShooterPlayerHUD* HUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+		if (HUD) {
+InventoryWidget = HUD->GetInventoryWidget();
+		}
+	}
+	return Pawn && InventoryWidget;
 }
+
+
+void UShooterInventoryManagerComponent::OpenInventory() {
+	bIsInventoryOpen = true;
+	InventoryWidget->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UShooterInventoryManagerComponent::CloseInventory() {
+	bIsInventoryOpen = false;
+	InventoryWidget->SetVisibility(ESlateVisibility::Hidden);
+}
+
+int UShooterInventoryManagerComponent::AddItemToInventory(FName NewItemId) {
+
+
+	return 0;
+}
+
+int UShooterInventoryManagerComponent::AddItemToInventoryImp(FShooterInventoryItem NewItem) {
+	int32 RemainingAmountThatCanFit = NewItem.Amount;
+	int32 AmountNotAdded = 0;
+
+	// can all fit? how about some?
+	if (InventoryComponent->IsSpaceFor(NewItem.GetTotalWeight())) {
+		RemainingAmountThatCanFit = NewItem.Amount;
+	}
+	else {
+		for (int i = NewItem.Amount; i >= 0; i--) {
+			if (InventoryComponent->IsSpaceFor(NewItem.Weight * i)) {
+				RemainingAmountThatCanFit = i;
+				break;
+			}
+		}
+	}
+
+	// inventory can't fit any of this item
+	if (RemainingAmountThatCanFit <= 0) {
+		return NewItem.Amount;
+	}
+
+	AmountNotAdded = NewItem.Amount - RemainingAmountThatCanFit;
+
+	// can we stack the amount that can fit?
+	if (NewItem.bIsStackable) {
+		RemainingAmountThatCanFit = FindItemAndAddToStack(NewItem.ID, RemainingAmountThatCanFit);
+	}
+
+	// did all fit in a stack?
+	if (RemainingAmountThatCanFit <= 0) {
+		return 0;
+	}
+
+	AmountNotAdded -= RemainingAmountThatCanFit;
+
+	// put remaining amount in new item
+	NewItem.Amount = RemainingAmountThatCanFit;
+	AddItem(NewItem);
+
+	return AmountNotAdded;
+}
+
+int UShooterInventoryManagerComponent::FindItemAndAddToStack(FName ItemId, int ItemAmount) {
+	int32 RemainingAmount = ItemAmount;
+
+	for (int i = 0; i < InventoryComponent->GetInventory().Num() || RemainingAmount == 0; i++) {
+		if (InventoryComponent->GetInventory()[i].ID == ItemId) {
+			RemainingAmount = AddItemToStack(i, RemainingAmount);
+		}
+	}
+
+	return RemainingAmount;
+}
+
+int UShooterInventoryManagerComponent::AddItemToStack(int32 ItemIndex, int ItemAmountToAdd) {
+
+	int32 RemainingAmount = ItemAmountToAdd;
+
+	FShooterInventoryItem LItem = InventoryComponent->GetInventory()[ItemIndex];
+	// is there free space
+	if (LItem.Amount < LItem.MaxStackable) {
+		// is there space for all
+		int32 FreeSpaceAmount = LItem.MaxStackable - LItem.Amount;
+		if (RemainingAmount <= FreeSpaceAmount) {
+			LItem.Amount += RemainingAmount;
+			RemainingAmount = 0;
+		}
+		else {
+			LItem.Amount = LItem.MaxStackable;
+			RemainingAmount -= FreeSpaceAmount;
+		}
+	}
+
+	return RemainingAmount;
+}
+
+void UShooterInventoryManagerComponent::AddItem(FShooterInventoryItem NewItem) {
+	InventoryComponent->SetInventoryItem(NewItem);
+}
+
+bool UShooterInventoryManagerComponent::RemoveItemFromInventory(FName ItemId, int Amount) {
+	int RemainingAmount = Amount;
+	if (CheckForDesiredItemAmount(ItemId, Amount)) {
+		for (int i = 0; InventoryComponent->GetInventory().Num(); i++) {
+			if (InventoryComponent->GetInventory()[i].ID == ItemId) {
+				RemainingAmount = RemoveItem(i, RemainingAmount);
+				if (RemainingAmount <= 0) {
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+bool UShooterInventoryManagerComponent::CheckForDesiredItemAmount(FName ItemId, int DesiredAmount) {
+	int AmountInInventory = 0;
+	for (int i = 0; InventoryComponent->GetInventory().Num(); i++) {
+		if (InventoryComponent->GetInventory()[i].ID == ItemId) {
+			AmountInInventory += InventoryComponent->GetInventory()[i].Amount;
+			if (AmountInInventory >= DesiredAmount) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+int UShooterInventoryManagerComponent::RemoveItem(int ItemIndex, int Amount) {
+	int RemainingAmount = Amount;
+	if (Amount >= InventoryComponent->GetInventory()[ItemIndex].Amount) {
+		RemainingAmount = Amount - InventoryComponent->GetInventory()[ItemIndex].Amount;
+		InventoryComponent->GetInventory().RemoveAt(ItemIndex);
+	} else {
+		RemainingAmount = 0;
+		InventoryComponent->GetInventory()[ItemIndex].Amount -= Amount;
+	}
+	return RemainingAmount;
+}
+

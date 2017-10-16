@@ -13,37 +13,29 @@ AShooterWorldActorBase::AShooterWorldActorBase()
 	Mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	Mesh->SetCollisionResponseToChannel(COLLISION_INTERACTABLE, ECollisionResponse::ECR_Block);
 
-	// outliner layer for highlighting actor
-	Mesh->SetCustomDepthStencilValue(1);
-
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 
 	bWasInteracted = false;
-
+	CustomOutlineDepthValue = 1;
 }
 
 // Called when the game starts or when spawned
-void AShooterWorldActorBase::BeginPlay()
-{
+void AShooterWorldActorBase::BeginPlay(){
 	Super::BeginPlay();
-	
+	Mesh->SetCustomDepthStencilValue(CustomOutlineDepthValue);
 }
 
 // Called every frame
-void AShooterWorldActorBase::Tick(float DeltaTime)
-{
+void AShooterWorldActorBase::Tick(float DeltaTime){
 	Super::Tick(DeltaTime);
 
 }
 
-
 bool AShooterWorldActorBase::OnActorInteracted_Implementation(AShooterCharacter* Player) {
 	// server only
-
-	bWasInteracted = true;
-	this->Destroy();
+	GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Server Interacted Base")));
 	return true;
 }
 

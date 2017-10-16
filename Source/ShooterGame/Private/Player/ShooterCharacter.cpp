@@ -1,6 +1,8 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
 #include "ShooterGame.h"
+#include "ShooterInteractableActorInterface.h"
+#include "ShooterItemPUPDInterface.h"
 #include "ShooterWorldActorBase.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterDamageType.h"
@@ -56,6 +58,10 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_PROJECTILE, ECR_Block);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
 
+	InventoryComponent = ObjectInitializer.CreateDefaultSubobject<UShooterInventoryComponent>(this, TEXT("InventoryComponent"));
+	InventoryManagerComponent = ObjectInitializer.CreateDefaultSubobject<UShooterInventoryManagerComponent>(this, TEXT("InventoryManagerComponent"));
+
+
 	TargetingSpeedModifier = 0.5f;
 	bIsTargeting = false;
 	RunningSpeedModifier = 1.5f;
@@ -68,11 +74,15 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 
 	LineTraceForInteractionTimer = 0.0f;
 
+	InitialMaxInventoryWeight = 100.0f;
+
 }
 
 void AShooterCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	InventoryManagerComponent->InitializeInventory(this, InitialMaxInventoryWeight);
 
 	if (Role == ROLE_Authority)
 	{
@@ -1327,6 +1337,22 @@ bool AShooterCharacter::ServerOnInteract_Validate() {
 	return true;
 }
 
+
+void AShooterCharacter::OnItemPickUp(FName ItemId) {
+	if (!InventoryManagerComponent) {
+		// do somehitng?
+		return;
+	}
+	InventoryManagerComponent->AddItemToInventory(ItemId);
+}
+
+void AShooterCharacter::OnItemPutDown() {
+	if (!InventoryManagerComponent) {
+		// do somehitng?
+		return;
+	}
+}
+
 void AShooterCharacter::ServerOnInteract_Implementation() {
 	GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Server Interact")));
 	ServerLineTraceForInteraction();
@@ -1366,6 +1392,45 @@ FVector AShooterCharacter::GetLookDirection() const
 	return FinalAim;
 }
 
+bool AShooterCharacter::LineTraceForInteraction() {
+
+	// server doesn't need to do this until a hit is registered by the client
+	if (!IsLocallyControlled()) {
+		return false;
+	}
+
+	FVector LookDirection = GetLookDirection();
+
+	FVector StartTrace = GetTraceStartLocation(LookDirection);
+	FVector EndTrace = StartTrace + (LookDirection * 300.0f);
+
+	// Perform trace to retrieve hit info
+	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(InteractionTrace), true);
+
+	FHitResult Hit(ForceInit);
+	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, COLLISION_INTERACTABLE, TraceParams);
+
+	if (Hit.GetActor()) {
+
+		if (!CurrentInteractingActor) {
+			CurrentInteractingActor = Hit.GetActor();
+			if (CurrentInteractingActor->GetClass()->ImplementsInterface(UShooterInteractableActorInterface::StaticClass())) {
+				IShooterInteractableActorInterface::Execute_BeginOutlineFocus(CurrentInteractingActor);
+			}
+		}
+	}
+	else {
+		if (CurrentInteractingActor) {
+			if (CurrentInteractingActor->GetClass()->ImplementsInterface(UShooterInteractableActorInterface::StaticClass())) {
+				IShooterInteractableActorInterface::Execute_EndOutlineFocus(CurrentInteractingActor);
+			}
+			CurrentInteractingActor = nullptr;
+		}
+	}
+
+	return false;
+}
+
 
 void AShooterCharacter::ServerLineTraceForInteraction() {
 
@@ -1390,54 +1455,41 @@ void AShooterCharacter::ServerLineTraceForInteraction() {
 	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, COLLISION_INTERACTABLE, TraceParams);
 
 	if (Hit.GetActor()) {
-		AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(Hit.GetActor());
-		if (wActor) {
-			wActor->OnActorInteracted_Implementation(this);
-		}
-	}
 
-	
+		HandleItemInteraction(Hit.GetActor());
+		
+	}	
 }
 
 
-bool AShooterCharacter::LineTraceForInteraction() {
 
-	// server doesn't need to do this until a hit is registered by the client
-	if (!IsLocallyControlled()) {
-		return false;
-	}
+void AShooterCharacter::HandleItemInteraction(AActor* NewActor) {
 
-	FVector LookDirection = GetLookDirection();
-
-	FVector StartTrace = GetTraceStartLocation(LookDirection);
-	FVector EndTrace = StartTrace + (LookDirection * 300.0f);
-
-	// Perform trace to retrieve hit info
-	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(InteractionTrace), true);
-
-	FHitResult Hit(ForceInit);
-	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, COLLISION_INTERACTABLE, TraceParams);
-
-	if (Hit.GetActor()) {
-
-		if (!CurrentInteractingActor) {
-			CurrentInteractingActor = Hit.GetActor();
-			AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(CurrentInteractingActor);
-			if (wActor) {
-				wActor->BeginOutlineFocus_Implementation();
-			}
-			CurrentInteractingActor = Hit.GetActor();
-		}		
-	}
-	else {
-		if (CurrentInteractingActor) {
-			AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(CurrentInteractingActor);
-			if (wActor) {
-				wActor->EndOutlineFocus_Implementation();
-			}
-			CurrentInteractingActor = nullptr;
+	AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(NewActor);
+	if (wActor) {
+		// do inventory things first, then decide how to handle the item
+		switch (wActor->ItemType) {
+		case EShooterItemType::Weapon:
+			// do weapon stuff here - add to primary/secondary, swap, etc
+			break;
+		case EShooterItemType::Ammo:
+		case EShooterItemType::Consumable:
+		case EShooterItemType::WeaponAttachment:
+			// these will go directly into the inventory
+			break;
+		case EShooterItemType::Action:
+			// this is a simple interatable actor (e.g. A Door)
+			break;
 		}
 	}
 
-	return false;
+	if (NewActor->GetClass()->ImplementsInterface(UShooterInteractableActorInterface::StaticClass())) {
+		IShooterInteractableActorInterface::Execute_OnActorInteracted(NewActor, this);
+	}
+
+	if (NewActor->GetClass()->ImplementsInterface(UShooterItemPUPDInterface::StaticClass())) {
+		IShooterItemPUPDInterface::Execute_OnPickUp(NewActor, this);
+	}
+
+
 }

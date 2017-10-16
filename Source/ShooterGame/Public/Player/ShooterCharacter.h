@@ -3,6 +3,8 @@
 #pragma once
 
 #include "ShooterTypes.h"
+#include "ShooterInventoryComponent.h"
+#include "ShooterInventoryManagerComponent.h"
 #include "ShooterCharacter.generated.h"
 
 UCLASS(Abstract)
@@ -191,10 +193,6 @@ class AShooterCharacter : public ACharacter
 	/** player released run action */
 	void OnStopRunning();
 
-	void OnInteract();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerOnInteract();
 
 	//////////////////////////////////////////////////////////////////////////
 	// Reading data
@@ -283,6 +281,12 @@ protected:
 	/** currently equipped weapon */
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_CurrentWeapon)
 	class AShooterWeapon* CurrentWeapon;
+
+	/////////  NEW WEAPON INVENTORY SYSTEM
+
+
+
+	////////  END NEW WEAPON INVENTORY SYSTEM
 
 	/** Replicate where this pawn was last hit and damaged */
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_LastTakeHitInfo)
@@ -476,9 +480,33 @@ protected:
 	FORCEINLINE USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 
 
+	// INVENTORY
+
+
+
+	UShooterInventoryComponent* InventoryComponent;
+	UShooterInventoryManagerComponent* InventoryManagerComponent;
+
+
+
+	public:
+
+		UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+			float InitialMaxInventoryWeight;
+
+		FORCEINLINE UShooterInventoryComponent* GetInventoryComponent() { return InventoryComponent; }
+
+
+
 	// INTERACTION
 
 private:
+
+	void OnInteract();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerOnInteract();
+
 
 	float LineTraceForInteractionTimer;
 
@@ -499,11 +527,12 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
 		void OnInteractableActorFocused();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "PUPD")
-		void OnItemPickUp(AActor* PickedUpItem);
+	// server only
+	UFUNCTION()
+		void HandleItemInteraction(AActor* NewActor);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "PUPD")
-		void OnItemPutDown(AActor* PutDownItem);
+		void OnItemPickUp(FName ItemId);
+		void OnItemPutDown();
 
 
 

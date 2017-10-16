@@ -339,7 +339,8 @@ protected:
 	void DrawDeathMessages();
 
 	/** Delegate for telling other methods when players have started/stopped talking */
-	FOnPlayerTalkingStateChangedDelegate OnPlayerTalkingStateChangedDelegate;
+	
+	//FOnPlayerTalkingStateChangedDelegate OnPlayerTalkingStateChangedDelegate;
 	void OnPlayerTalkingStateChanged(TSharedRef<const FUniqueNetId> TalkingPlayerId, bool bIsTalking);
 
 	/*

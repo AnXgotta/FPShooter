@@ -247,6 +247,9 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 		FWeaponRecoil WeaponRecoil;
 
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float Weight;
+
 	/** defaults */
 	FWeaponData()
 	{
@@ -259,6 +262,7 @@ struct FWeaponData
 		NoAnimReloadDuration = 1.0f;
 		bSingleFire = false;
 		WeaponRecoil = FWeaponRecoil();
+		Weight = 0.0f;
 	}
 };
 
@@ -331,9 +335,23 @@ namespace EShooterItemType
 		Weapon,
 		WeaponAttachment,
 		Consumable,
-		Ammo
+		Ammo,
+		Action
 	};
 }
+
+UENUM(BlueprintType)
+namespace EShooterConsumableType
+{
+	enum Type
+	{
+		Health,
+		Stim,
+		Rage
+	};
+}
+
+
 
 USTRUCT(BlueprintType)
 struct FShooterInventoryItem
@@ -356,6 +374,9 @@ struct FShooterInventoryItem
 		TEnumAsByte<EShooterItemType::Type> ItemType;
 
 	UPROPERTY()
+		float Weight;
+
+	UPROPERTY()
 		int8 Amount; // -127 to 127
 
 	UPROPERTY()
@@ -369,7 +390,11 @@ public:
 
 	}
 
+	FORCEINLINE float GetTotalWeight() { return Weight * Amount; }
+
+
 };
+
 
 USTRUCT(BlueprintType)
 struct FInventorySlotInformation

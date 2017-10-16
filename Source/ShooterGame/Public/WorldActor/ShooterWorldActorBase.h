@@ -10,13 +10,11 @@ UCLASS()
 class SHOOTERGAME_API AShooterWorldActorBase : public AActor, public IShooterInteractableActorInterface
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
-	AShooterWorldActorBase();
 
 
 protected:
+
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -32,11 +30,17 @@ protected:
 
 public:	
 
+	// Sets default values for this actor's properties
+	AShooterWorldActorBase();
+
 	UPROPERTY(EditDefaultsOnly, Category = Mesh)
 	UStaticMeshComponent* Mesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config)
 		TEnumAsByte<EShooterItemType::Type> ItemType;
+
+	UPROPERTY(EditDefaultsOnly, Category = Mesh)
+	int32 CustomOutlineDepthValue;
 	 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

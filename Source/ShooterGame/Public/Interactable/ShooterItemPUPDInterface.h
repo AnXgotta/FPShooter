@@ -19,6 +19,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IPUPD")
 		bool OnPickUp(AShooterCharacter* Player);
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IPUPD")
-		bool OnPutDown(AShooterCharacter* Player);
-
+		bool OnPutDown();
+		
 };

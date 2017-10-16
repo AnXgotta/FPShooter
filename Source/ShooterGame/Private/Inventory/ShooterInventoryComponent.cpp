@@ -65,6 +65,11 @@ void UShooterInventoryComponent::ModifyInventoryMaxSize(float Amount) {
 	InventoryMaxWeight += Amount;
 }
 
+bool UShooterInventoryComponent::IsSpaceFor(float Weight) {
+	return Weight <= (InventoryMaxWeight - InventoryWeight);
+}
+
+
 TArray<FShooterInventoryItem> UShooterInventoryComponent::GetInventory() { 
 	return Inventory;
 }
