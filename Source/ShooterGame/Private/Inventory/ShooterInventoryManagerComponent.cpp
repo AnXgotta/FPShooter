@@ -9,7 +9,7 @@
 UShooterInventoryManagerComponent::UShooterInventoryManagerComponent()
 {
 
-	InventoryHelper = NewObject<UShooterInventoryHelper>();
+	InventoryHelper = NewObject<UShooterInventoryHelper>(UShooterInventoryHelper::StaticClass());
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	bReplicates = true;
@@ -43,23 +43,30 @@ bool UShooterInventoryManagerComponent::InitializeInventory(AShooterCharacter* N
 	InventoryComponent->InventoryMaxWeight = MaxWeight;
 	AShooterPlayerController* PC = Cast<AShooterPlayerController>(Pawn->GetController());
 	if (PC) {
-		AShooterPlayerHUD* HUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
-		if (HUD) {
-			InventoryWidget = HUD->GetInventoryWidget();
+		AShooterPlayerHUD* PlayerHUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+		if (PlayerHUD) {
+			InventoryWidget = PlayerHUD->GetInventoryWidget();
 		}
 	}
 	return Pawn && InventoryWidget;
 }
 
-
 void UShooterInventoryManagerComponent::OpenInventory() {
-	bIsInventoryOpen = true;
-	InventoryWidget->SetVisibility(ESlateVisibility::Visible);
+	UE_LOG(LogTemp, Warning, TEXT("InvenManager Open Inventory"));
+	if (InventoryWidget) {
+		UE_LOG(LogTemp, Warning, TEXT("InvenManager Open Inven - Inventory not null"));
+		InventoryWidget->SetVisibility(ESlateVisibility::Visible);
+		bIsInventoryOpen = true;
+	}
 }
 
 void UShooterInventoryManagerComponent::CloseInventory() {
-	bIsInventoryOpen = false;
-	InventoryWidget->SetVisibility(ESlateVisibility::Hidden);
+	UE_LOG(LogTemp, Warning, TEXT("InvenManager Close Inventory"));
+	if (InventoryWidget) {
+		UE_LOG(LogTemp, Warning, TEXT("InvenManager Open Inven - Inventory not null"));
+		InventoryWidget->SetVisibility(ESlateVisibility::Hidden);
+		bIsInventoryOpen = false;
+	}
 }
 
 int UShooterInventoryManagerComponent::AddItemToInventory(FName NewItemId) {

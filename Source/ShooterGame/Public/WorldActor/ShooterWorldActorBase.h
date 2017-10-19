@@ -22,6 +22,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Config)
 		FString ItemNameId;
 
+	/** weapon data */
+	UPROPERTY(EditDefaultsOnly, Category = Config)
+		FString InteractionText;
+
 	UPROPERTY(ReplicatedUsing = OnRep_WasInteracted)
 		bool bWasInteracted;
 
@@ -33,6 +37,7 @@ protected:
 		void OnRep_WasInteracted();
 
 public:	
+
 
 	// Sets default values for this actor's properties
 	AShooterWorldActorBase();
@@ -68,9 +73,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
 		FString GetInteractActionText();
 	virtual FString GetInteractActionText_Implementation() override;
-
-		//Move interactable interface here to be overriden by children.
-		// this prevents an extra cast to specifi objects for showing highlight/outline/usetext
 
 	
 };

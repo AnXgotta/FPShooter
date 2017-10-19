@@ -12,6 +12,8 @@ class AShooterCharacter : public ACharacter
 {
 	GENERATED_UCLASS_BODY()
 
+	virtual void BeginPlay() override;
+
 	virtual void BeginDestroy() override;
 
 	/** spawn inventory, setup initial variables */
@@ -65,7 +67,7 @@ class AShooterCharacter : public ACharacter
 	*
 	* @param Weapon	Weapon to add.
 	*/
-	void AddWeapon(class AShooterWeapon* Weapon);
+	bool AddWeapon(class AShooterWeapon* Weapon);
 
 	/**
 	* [server] remove weapon from inventory
@@ -73,13 +75,6 @@ class AShooterCharacter : public ACharacter
 	* @param Weapon	Weapon to remove.
 	*/
 	void RemoveWeapon(class AShooterWeapon* Weapon);
-
-	/**
-	* Find in inventory
-	*
-	* @param WeaponClass	Class of weapon to find.
-	*/
-	class AShooterWeapon* FindWeapon(TSubclassOf<class AShooterWeapon> WeaponClass);
 
 	/**
 	* [server + local] equips weapon from inventory
@@ -207,16 +202,6 @@ class AShooterCharacter : public ACharacter
 	/** get weapon attach point */
 	FName GetWeaponAttachPoint() const;
 
-	/** get total number of inventory items */
-	int32 GetInventoryCount() const;
-
-	/**
-	* get weapon from inventory at index. Index validity is not checked.
-	*
-	* @param Index Inventory index
-	*/
-	class AShooterWeapon* GetInventoryWeapon(int32 index) const;
-
 	/** get weapon taget modifier speed	*/
 	UFUNCTION(BlueprintCallable, Category = "Game|Weapon")
 	float GetTargetingSpeedModifier() const;
@@ -270,29 +255,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Inventory)
 	FName WeaponAttachPoint;
 
-	/** default inventory list */
-	UPROPERTY(EditDefaultsOnly, Category = Inventory)
-	TArray<TSubclassOf<class AShooterWeapon> > DefaultInventoryClasses;
-
-	/** weapons in inventory */
-	UPROPERTY(Transient, Replicated)
-	TArray<class AShooterWeapon*> Inventory;
-
 	/** currently equipped weapon */
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_CurrentWeapon)
 	class AShooterWeapon* CurrentWeapon;
 
-	/////////  NEW WEAPON INVENTORY SYSTEM
+	/** Default fists melee weapon */
+	UPROPERTY(EditDefaultsOnly, Category = Inventory)
+	TSubclassOf<AShooterWeapon> FistsWeapon;
 
-	/** currently equipped weapon */
 	UPROPERTY(Transient, Replicated)
-		class AShooterWeapon* PrimaryWeapon;
-
-	/** currently equipped weapon */
+	class AShooterWeapon* FistWeaponRef = nullptr;
 	UPROPERTY(Transient, Replicated)
-		class AShooterWeapon* SecondaryWeapon;
-
-	////////  END NEW WEAPON INVENTORY SYSTEM
+	class AShooterWeapon* PrimaryWeaponRef = nullptr;
+	UPROPERTY(Transient, Replicated)
+	class AShooterWeapon* SecondaryWeaponRef = nullptr;
 
 	/** Replicate where this pawn was last hit and damaged */
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_LastTakeHitInfo)
@@ -460,9 +436,6 @@ protected:
 	UFUNCTION()
 	void OnRep_CurrentWeapon(class AShooterWeapon* LastWeapon);
 
-	/** [server] spawns default inventory */
-	void SpawnDefaultInventory();
-
 	/** [server] remove all weapons from inventory and destroy them */
 	void DestroyInventory();
 
@@ -478,6 +451,9 @@ protected:
 	UFUNCTION(reliable, server, WithValidation)
 	void ServerSetRunning(bool bNewRunning, bool bToggle);
 
+	/** [server] spawns default inventory */
+	void InitializeEmptyInventory();
+
 	/** Builds list of points to check for pausing replication for a connection*/
 	void BuildPauseReplicationCheckPoints(TArray<FVector>& RelevancyCheckPoints);
 
@@ -489,26 +465,31 @@ protected:
 	// INVENTORY
 
 
-
+	UPROPERTY()
 	UShooterInventoryComponent* InventoryComponent;
+
+	UPROPERTY()
 	UShooterInventoryManagerComponent* InventoryManagerComponent;
-
-
 
 	public:
 
 		UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 			float InitialMaxInventoryWeight;
 
+		UFUNCTION()
+			void InitializeInventoryComponents();
+
 		FORCEINLINE UShooterInventoryComponent* GetInventoryComponent() { return InventoryComponent; }
-
-
 
 	// INTERACTION
 
 private:
 
+	UFUNCTION()
 	void OnInteract();
+
+	UFUNCTION()
+	void OnToggleInventory();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerOnInteract();
@@ -525,6 +506,9 @@ public:
 	UFUNCTION()
 		bool OnPickupWeapon(FString ItemNameId, TArray<FText> WeaponAttachmentNames);
 
+	UFUNCTION()
+		bool OnDropWeapon(FWeaponData& WeaponConfig, TArray<FText> WeaponAttachmentNames);
+
 	UPROPERTY(BlueprintReadWrite, Category = "Interaction")
 		AActor* CurrentInteractingActor;
 
@@ -536,6 +520,10 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
 		void OnInteractableActorFocused();
+
+	// client only
+	UFUNCTION()
+		void HandleInteractionUI(AActor* NewActor);
 
 	// server only
 	UFUNCTION()

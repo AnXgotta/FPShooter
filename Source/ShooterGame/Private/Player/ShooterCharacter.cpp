@@ -83,12 +83,10 @@ void AShooterCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	InventoryManagerComponent->InitializeInventory(this, InitialMaxInventoryWeight);
-
 	if (Role == ROLE_Authority)
 	{
 		Health = GetMaxHealth();
-		SpawnDefaultInventory();
+		InitializeEmptyInventory();
 	}
 
 	// set initial mesh visibility (3rd person view)
@@ -113,6 +111,11 @@ void AShooterCharacter::PostInitializeComponents()
 			UGameplayStatics::PlaySoundAtLocation(this, RespawnSound, GetActorLocation());
 		}
 	}
+}
+
+void AShooterCharacter::BeginPlay() {
+	Super::BeginPlay();
+	InitializeInventoryComponents();
 }
 
 void AShooterCharacter::Destroyed()
@@ -563,30 +566,12 @@ bool AShooterCharacter::IsMoving()
 //////////////////////////////////////////////////////////////////////////
 // Inventory
 
-void AShooterCharacter::SpawnDefaultInventory()
-{
-	if (Role < ROLE_Authority)
-	{
-		return;
-	}
-
-	int32 NumWeaponClasses = DefaultInventoryClasses.Num();
-	for (int32 i = 0; i < NumWeaponClasses; i++)
-	{
-		if (DefaultInventoryClasses[i])
-		{
-			FActorSpawnParameters SpawnInfo;
-			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			AShooterWeapon* NewWeapon = GetWorld()->SpawnActor<AShooterWeapon>(DefaultInventoryClasses[i], SpawnInfo);
-			AddWeapon(NewWeapon);
-		}
-	}
-
-	// equip first weapon in inventory
-	if (Inventory.Num() > 0)
-	{
-		EquipWeapon(Inventory[0]);
-	}
+void AShooterCharacter::InitializeEmptyInventory() {
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AShooterWeapon* NewWeapon = GetWorld()->SpawnActor<AShooterWeapon>(FistsWeapon, SpawnInfo);
+	FistWeaponRef = NewWeapon;
+	EquipWeapon(NewWeapon);
 }
 
 void AShooterCharacter::DestroyInventory()
@@ -596,47 +581,74 @@ void AShooterCharacter::DestroyInventory()
 		return;
 	}
 
-	// remove all weapons from inventory and destroy them
-	for (int32 i = Inventory.Num() - 1; i >= 0; i--)
-	{
-		AShooterWeapon* Weapon = Inventory[i];
-		if (Weapon)
-		{
-			RemoveWeapon(Weapon);
-			Weapon->Destroy();
-		}
+	// remove all weapons and destroy them
+	// clear all weapon pointers and then current weapon pointer to avoid NPE
+
+	if (PrimaryWeaponRef) {
+		PrimaryWeaponRef->Destroy();
+		PrimaryWeaponRef = nullptr;
 	}
+	if (SecondaryWeaponRef) {
+		SecondaryWeaponRef->Destroy();
+		SecondaryWeaponRef = nullptr;
+	}
+
+	CurrentWeapon = nullptr;
 }
 
-void AShooterCharacter::AddWeapon(AShooterWeapon* Weapon)
+bool AShooterCharacter::AddWeapon(AShooterWeapon* Weapon)
 {
 	if (Weapon && Role == ROLE_Authority)
 	{
-		Weapon->OnEnterInventory(this);
-		Inventory.AddUnique(Weapon);
+		bool bWeaponAdded = false;
+		// if no weapon in primary, add as primary
+		if (!PrimaryWeaponRef) {
+			bWeaponAdded = true;
+			PrimaryWeaponRef = Weapon;
+		}
+		// if primary has weapon, try to put in secondary
+		else if (!SecondaryWeaponRef) {
+			bWeaponAdded = true;
+			SecondaryWeaponRef = Weapon;
+		}
+
+		// if added, set up weapon
+		if (bWeaponAdded) {
+			Weapon->OnEnterInventory(this);
+			// if no weapon equipped, equip the weapon
+			if (!CurrentWeapon || CurrentWeapon == FistWeaponRef) {
+				EquipWeapon(Weapon);
+			}
+		}
+		return bWeaponAdded;
 	}
+	return false;
 }
 
 void AShooterCharacter::RemoveWeapon(AShooterWeapon* Weapon)
 {
 	if (Weapon && Role == ROLE_Authority)
 	{
-		Weapon->OnLeaveInventory();
-		Inventory.RemoveSingle(Weapon);
-	}
-}
+		AShooterWeapon* WeaponToRemove = nullptr;
+		// if we have a primary and it's the weapon to remove
+		if (PrimaryWeaponRef && PrimaryWeaponRef == Weapon) {
+			WeaponToRemove = PrimaryWeaponRef;
+		}
+		// if we have a secondary and it's the weapon to remove
+		else if (SecondaryWeaponRef && SecondaryWeaponRef == Weapon) {
+			WeaponToRemove = SecondaryWeaponRef;
+		}
 
-AShooterWeapon* AShooterCharacter::FindWeapon(TSubclassOf<AShooterWeapon> WeaponClass)
-{
-	for (int32 i = 0; i < Inventory.Num(); i++)
-	{
-		if (Inventory[i] && Inventory[i]->IsA(WeaponClass))
-		{
-			return Inventory[i];
+		// if we have a weapon to remove, remove it
+		if (WeaponToRemove) {
+			// if we have this weapon equipped, unequip it and equip default fist weapon
+			if (WeaponToRemove == CurrentWeapon) {
+				EquipWeapon(FistWeaponRef);
+			}
+			// remove weapon from inventory
+			WeaponToRemove->OnLeaveInventory();
 		}
 	}
-
-	return NULL;
 }
 
 void AShooterCharacter::EquipWeapon(AShooterWeapon* Weapon)
@@ -885,6 +897,8 @@ void AShooterCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AShooterCharacter::OnInteract);
 
+	PlayerInputComponent->BindAction("ToggleInventory", IE_Pressed, this, &AShooterCharacter::OnToggleInventory);
+
 }
 
 
@@ -977,11 +991,26 @@ void AShooterCharacter::OnNextWeapon()
 	AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
 	if (MyPC && MyPC->IsGameInputAllowed())
 	{
-		if (Inventory.Num() >= 2 && (CurrentWeapon == NULL || CurrentWeapon->GetCurrentState() != EWeaponState::Equipping))
+		// THIS WILL CHANGE WHEN WE HAVE MORE EQUIPPABLE WEAPONS/ITEMS
+		// if weapon isn't currently equipping
+		if (CurrentWeapon == NULL || CurrentWeapon->GetCurrentState() != EWeaponState::Equipping)
 		{
-			const int32 CurrentWeaponIdx = Inventory.IndexOfByKey(CurrentWeapon);
-			AShooterWeapon* NextWeapon = Inventory[(CurrentWeaponIdx + 1) % Inventory.Num()];
-			EquipWeapon(NextWeapon);
+			if (!CurrentWeapon) {
+				// this will never happed since we force equip 'FistWeapon' if no 'weapons'
+			}
+			else { // check which weapon is equipped and see if we can equip the other weapon
+				AShooterWeapon* NextWeapon = nullptr;
+				if (PrimaryWeaponRef == CurrentWeapon && SecondaryWeaponRef) {
+					NextWeapon = SecondaryWeaponRef;
+				}
+				else if (SecondaryWeaponRef == CurrentWeapon && PrimaryWeaponRef) {
+					NextWeapon = PrimaryWeaponRef;
+				}
+				// if there is another weapon, equip it
+				if (NextWeapon) {
+					EquipWeapon(NextWeapon);
+				}
+			}			
 		}
 	}
 }
@@ -991,11 +1020,26 @@ void AShooterCharacter::OnPrevWeapon()
 	AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
 	if (MyPC && MyPC->IsGameInputAllowed())
 	{
-		if (Inventory.Num() >= 2 && (CurrentWeapon == NULL || CurrentWeapon->GetCurrentState() != EWeaponState::Equipping))
+		// THIS WILL CHANGE WHEN WE HAVE MORE EQUIPPABLE WEAPONS/ITEMS
+		// if weapon isn't currently equipping
+		if (CurrentWeapon == NULL || CurrentWeapon->GetCurrentState() != EWeaponState::Equipping)
 		{
-			const int32 CurrentWeaponIdx = Inventory.IndexOfByKey(CurrentWeapon);
-			AShooterWeapon* PrevWeapon = Inventory[(CurrentWeaponIdx - 1 + Inventory.Num()) % Inventory.Num()];
-			EquipWeapon(PrevWeapon);
+			if (!CurrentWeapon) {
+				// this will never happed since we force equip 'FistWeapon' if no 'weapons'
+			}
+			else { // check which weapon is equipped and see if we can equip the other weapon
+				AShooterWeapon* NextWeapon = nullptr;
+				if (PrimaryWeaponRef == CurrentWeapon && SecondaryWeaponRef) {
+					NextWeapon = SecondaryWeaponRef;
+				}
+				else if (SecondaryWeaponRef == CurrentWeapon && PrimaryWeaponRef) {
+					NextWeapon = PrimaryWeaponRef;
+				}
+				// if there is another weapon, equip it
+				if (NextWeapon) {
+					EquipWeapon(NextWeapon);
+				}
+			}
 		}
 	}
 }
@@ -1176,7 +1220,9 @@ void AShooterCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > &
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	// only to local owner: weapon change requests are locally instigated, other clients don't need it
-	DOREPLIFETIME_CONDITION(AShooterCharacter, Inventory, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(AShooterCharacter, FistWeaponRef, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(AShooterCharacter, PrimaryWeaponRef, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(AShooterCharacter, SecondaryWeaponRef, COND_OwnerOnly);
 
 	// everyone except local owner: flag change is locally instigated
 	DOREPLIFETIME_CONDITION(AShooterCharacter, bIsTargeting, COND_SkipOwner);
@@ -1228,16 +1274,6 @@ void AShooterCharacter::OnReplicationPausedChanged(bool bIsReplicationPaused)
 AShooterWeapon* AShooterCharacter::GetWeapon() const
 {
 	return CurrentWeapon;
-}
-
-int32 AShooterCharacter::GetInventoryCount() const
-{
-	return Inventory.Num();
-}
-
-AShooterWeapon* AShooterCharacter::GetInventoryWeapon(int32 index) const
-{
-	return Inventory[index];
 }
 
 USkeletalMeshComponent* AShooterCharacter::GetPawnMesh() const
@@ -1320,7 +1356,24 @@ void AShooterCharacter::BuildPauseReplicationCheckPoints(TArray<FVector>& Releva
 	RelevancyCheckPoints.Add(BoundingBox.Max);
 }
 
+// INVENTORY
 
+void AShooterCharacter::InitializeInventoryComponents() {
+	InventoryManagerComponent->InitializeInventory(this, InitialMaxInventoryWeight);
+}
+
+void AShooterCharacter::OnToggleInventory() {
+	if (InventoryManagerComponent) {
+		if (InventoryManagerComponent->bIsInventoryOpen) {
+			UE_LOG(LogTemp, Warning, TEXT("Player Close Inven"));
+			InventoryManagerComponent->CloseInventory();
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("Player Open Inven"));
+			InventoryManagerComponent->OpenInventory();
+		} 
+	}
+}
 
 // INTERACTION
 
@@ -1417,6 +1470,7 @@ bool AShooterCharacter::LineTraceForInteraction() {
 			CurrentInteractingActor = Hit.GetActor();
 			if (CurrentInteractingActor->GetClass()->ImplementsInterface(UShooterInteractableActorInterface::StaticClass())) {
 				IShooterInteractableActorInterface::Execute_BeginOutlineFocus(CurrentInteractingActor);
+
 			}
 		}
 	}
@@ -1456,13 +1510,16 @@ void AShooterCharacter::ServerLineTraceForInteraction() {
 	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, COLLISION_INTERACTABLE, TraceParams);
 
 	if (Hit.GetActor()) {
-
 		HandleItemInteraction(Hit.GetActor());
-		
 	}	
 }
 
+void AShooterCharacter::HandleInteractionUI(AActor* NewActor) {
+	AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(NewActor);
+	if (wActor) {
 
+	}
+}
 
 void AShooterCharacter::HandleItemInteraction(AActor* NewActor) {
 
@@ -1512,9 +1569,21 @@ bool AShooterCharacter::OnPickupWeapon(FString ItemNameId, TArray<FText> WeaponA
 	NewWeapon->SetWeaponConfig(NewWeaponData);
 
 	AddWeapon(NewWeapon);
-
-	EquipWeapon(Inventory[Inventory.Num() - 1]);
 	
+	return true;
+
+}
+
+bool AShooterCharacter::OnDropWeapon(FWeaponData& WeaponConfig, TArray<FText> WeaponAttachmentNames) {
+
+	//FActorSpawnParameters SpawnInfo;
+	//SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	//AShooterWorldActor_Weapon* NewWeapon = GetWorld()->SpawnActor<AShooterWorldActor_Weapon>(NewWeaponData.SpawnClass, SpawnInfo);
+	//if (!NewWeapon) {
+	//	GEngine->AddOnScreenDebugMessage(-1, 5.0, FColor::Green, FString(TEXT("Dropped Weapon NULL")));
+	//	return false;
+	//}
+
 	return true;
 
 }

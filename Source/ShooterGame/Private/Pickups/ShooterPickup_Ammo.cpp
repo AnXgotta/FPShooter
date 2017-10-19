@@ -16,12 +16,12 @@ bool AShooterPickup_Ammo::IsForWeapon(UClass* WeaponClass)
 
 bool AShooterPickup_Ammo::CanBePickedUp(AShooterCharacter* TestPawn) const
 {
-	AShooterWeapon* TestWeapon = (TestPawn ? TestPawn->FindWeapon(WeaponType) : NULL);
+	/*AShooterWeapon* TestWeapon = (TestPawn ? TestPawn->FindWeapon(WeaponType) : NULL);
 	if (bIsActive && TestWeapon)
 	{
 		return TestWeapon->GetCurrentAmmo() < TestWeapon->GetMaxAmmo();
 	}
-
+*/
 	return false;
 }
 

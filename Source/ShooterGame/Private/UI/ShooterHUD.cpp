@@ -228,14 +228,14 @@ void AShooterHUD::DrawWeaponHUD()
 
 		//SECONDARY WEAPON
 		AShooterWeapon* SecondaryWeapon = NULL;
-		for (int32 i=0; i < MyPawn->GetInventoryCount(); i++)
+		/*for (int32 i=0; i < MyPawn->GetInventoryCount(); i++)
 		{
 			if (MyPawn->GetInventoryWeapon(i) != MyWeapon)
 			{
 				SecondaryWeapon = MyPawn->GetInventoryWeapon(i);
 				break;
 			}
-		}
+		}*/
 		if (SecondaryWeapon)
 		{
 			Canvas->SetDrawColor(FColor::White);

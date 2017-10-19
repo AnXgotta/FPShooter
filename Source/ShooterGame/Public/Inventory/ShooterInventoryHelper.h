@@ -19,9 +19,13 @@ public:
 
 	UShooterInventoryHelper();
 
+	UPROPERTY()
 	UDataTable* WeaponInfoDT;
+
+	UPROPERTY()
 	UDataTable* WeaponUIInfoDT;
 
+	UFUNCTION()
 	FWeaponData GetWeaponInventoryInfo(FString WeaponId);
 
 

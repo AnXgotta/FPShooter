@@ -2,6 +2,3 @@
 
 #include "ShooterGame.h"
 #include "ShooterPlayerHUD.h"
-
-
-

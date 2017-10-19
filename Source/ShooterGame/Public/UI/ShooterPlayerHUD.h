@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "ShooterInventoryWidget.h"
 #include "ShooterPlayerHUD.generated.h"
 
 /**
@@ -13,15 +14,12 @@ UCLASS()
 class SHOOTERGAME_API AShooterPlayerHUD : public AHUD
 {
 	GENERATED_BODY()
-
-		
-	
+			
 public:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inventory")
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
 		UShooterInventoryWidget* InventoryWidgetCPPRef;
-	
+
 	FORCEINLINE UShooterInventoryWidget* GetInventoryWidget() { return InventoryWidgetCPPRef; }
-	
-	
+
 };
