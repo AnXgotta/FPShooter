@@ -89,11 +89,6 @@ class AShooterWeapon_Instant : public AShooterWeapon
 
 protected:
 
-	virtual EAmmoType GetAmmoType() const override
-	{
-		return EAmmoType::EBullet;
-	}
-
 	/** weapon config */
 	UPROPERTY(EditDefaultsOnly, Category=Config)
 	FInstantWeaponData InstantConfig;

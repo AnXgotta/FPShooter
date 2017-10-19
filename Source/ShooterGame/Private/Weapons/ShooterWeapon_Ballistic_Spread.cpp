@@ -30,7 +30,7 @@ void AShooterWeapon_Ballistic_Spread::FireWeapon()
 
 	}
 
-	CurrentFiringSpread = FMath::Min(BallisticConfig.FiringSpreadMax, CurrentFiringSpread + BallisticConfig.FiringSpreadIncrement);
+	CurrentFiringSpread = FMath::Min(WeaponConfig.BallisticData.FiringSpreadMax, CurrentFiringSpread + WeaponConfig.BallisticData.FiringSpreadIncrement);
 
 }
 

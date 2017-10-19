@@ -18,6 +18,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	/** weapon data */
+	UPROPERTY(EditDefaultsOnly, Category = Config)
+		FString ItemNameId;
+
 	UPROPERTY(ReplicatedUsing = OnRep_WasInteracted)
 		bool bWasInteracted;
 

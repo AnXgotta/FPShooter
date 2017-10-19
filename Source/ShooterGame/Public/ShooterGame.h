@@ -39,4 +39,3 @@ DECLARE_LOG_CATEGORY_EXTERN(LogShooterWeapon, Log, All);
 #else
 	#define SHOOTER_CONSOLE_UI 0
 #endif
-

@@ -15,10 +15,6 @@ UCLASS()
 class SHOOTERGAME_API AShooterWorldActor_Weapon : public AShooterWorldActorBase, public IShooterItemPUPDInterface
 {
 	GENERATED_BODY()
-	
-	/** weapon data */
-	UPROPERTY(EditDefaultsOnly, Category = Config)
-	FText WeaponId;
 
 	/** attachment data */
 	UPROPERTY(EditDefaultsOnly, Category = Config)
@@ -33,7 +29,6 @@ public:
 
 	AShooterWorldActor_Weapon();
 
-	FORCEINLINE FText GetWeaponNameId() { return WeaponNameId; }
 	FORCEINLINE TArray<FText> GetAttachmentNameIds() { return AttachmentNameIds; }
 	
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "IPUPD")

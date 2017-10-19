@@ -72,8 +72,6 @@ void FShooterOptions::Construct(ULocalPlayer* InPlayerOwner)
 	TSharedPtr<FShooterMenuItem> CheatsRoot = FShooterMenuItem::CreateRoot();
 
 	CheatsItem = MenuHelper::AddMenuItem(CheatsRoot,LOCTEXT("Cheats", "CHEATS"));
-	MenuHelper::AddMenuOptionSP(CheatsItem, LOCTEXT("InfiniteAmmo", "INFINITE AMMO"), OnOffList, this, &FShooterOptions::InfiniteAmmoOptionChanged);
-	MenuHelper::AddMenuOptionSP(CheatsItem, LOCTEXT("InfiniteClip", "INFINITE CLIP"), OnOffList, this, &FShooterOptions::InfiniteClipOptionChanged);
 	MenuHelper::AddMenuOptionSP(CheatsItem, LOCTEXT("FreezeMatchTimer", "FREEZE MATCH TIMER"), OnOffList, this, &FShooterOptions::FreezeTimerOptionChanged);
 	MenuHelper::AddMenuOptionSP(CheatsItem, LOCTEXT("HealthRegen", "HP REGENERATION"), OnOffList, this, &FShooterOptions::HealthRegenOptionChanged);
 
@@ -265,37 +263,6 @@ void FShooterOptions::UpdateOptions()
 #endif
 }
 
-void FShooterOptions::InfiniteAmmoOptionChanged(TSharedPtr<FShooterMenuItem> MenuItem, int32 MultiOptionIndex)
-{
-	UWorld* const World = PlayerOwner->GetWorld();
-	if (World)
-	{
-		for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
-		{
-			AShooterPlayerController* ShooterPC = Cast<AShooterPlayerController>(*It);
-			if (ShooterPC)
-			{
-				ShooterPC->SetInfiniteAmmo(MultiOptionIndex > 0 ? true : false);
-			}
-		}
-	}
-}
-
-void FShooterOptions::InfiniteClipOptionChanged(TSharedPtr<FShooterMenuItem> MenuItem, int32 MultiOptionIndex)
-{
-	UWorld* const World = PlayerOwner->GetWorld();
-	if (World)
-	{
-		for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
-		{
-			AShooterPlayerController* const ShooterPC = Cast<AShooterPlayerController>(*It);
-			if (ShooterPC)
-			{
-				ShooterPC->SetInfiniteClip(MultiOptionIndex > 0 ? true : false);
-			}
-		}
-	}
-}
 
 void FShooterOptions::FreezeTimerOptionChanged(TSharedPtr<FShooterMenuItem> MenuItem, int32 MultiOptionIndex)
 {

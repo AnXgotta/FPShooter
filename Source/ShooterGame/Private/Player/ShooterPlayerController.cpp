@@ -517,15 +517,6 @@ bool AShooterPlayerController::IsGameMenuVisible() const
 	return Result;
 }
 
-void AShooterPlayerController::SetInfiniteAmmo(bool bEnable)
-{
-	bInfiniteAmmo = bEnable;
-}
-
-void AShooterPlayerController::SetInfiniteClip(bool bEnable)
-{
-	bInfiniteClip = bEnable;
-}
 
 void AShooterPlayerController::SetHealthRegen(bool bEnable)
 {
@@ -855,15 +846,6 @@ void AShooterPlayerController::ServerSuicide_Implementation()
 	}
 }
 
-bool AShooterPlayerController::HasInfiniteAmmo() const
-{
-	return bInfiniteAmmo;
-}
-
-bool AShooterPlayerController::HasInfiniteClip() const
-{
-	return bInfiniteClip;
-}
 
 bool AShooterPlayerController::HasHealthRegen() const
 {
@@ -1001,9 +983,6 @@ void AShooterPlayerController::UpdateAchievementsOnGameEnd()
 
 				const int32 TotalKills = PersistentUser->GetKills();
 				const int32 MatchScore = (int32)ShooterPlayerState->GetScore();
-
-				const int32 TotalBulletsFired = PersistentUser->GetBulletsFired();
-				const int32 TotalRocketsFired = PersistentUser->GetRocketsFired();
 			
 				float TotalGameAchievement = 0;
 				float CurrentGameAchievement = 0;
@@ -1085,23 +1064,9 @@ void AShooterPlayerController::UpdateAchievementsOnGameEnd()
 
 				///////////////////////////////////////
 				// Ammo Achievements
-				{
-					float fLotsBulletsPct = ((float)TotalBulletsFired / (float)LotsBulletsCount) * 100.0f;
-					fLotsBulletsPct = FMath::RoundToFloat(fLotsBulletsPct);
-					UpdateAchievementProgress(ACH_SHOOT_BULLETS, fLotsBulletsPct);
+				
+				// removed
 
-					CurrentGameAchievement += FMath::Min(fLotsBulletsPct, 100.0f);
-					TotalGameAchievement += 100;
-				}
-
-				{
-					float fLotsRocketsPct = ((float)TotalRocketsFired / (float)LotsRocketsCount) * 100.0f;
-					fLotsRocketsPct = FMath::RoundToFloat(fLotsRocketsPct);
-					UpdateAchievementProgress(ACH_SHOOT_ROCKETS, fLotsRocketsPct);
-
-					CurrentGameAchievement += FMath::Min(fLotsRocketsPct, 100.0f);
-					TotalGameAchievement += 100;
-				}
 				///////////////////////////////////////
 
 				///////////////////////////////////////
@@ -1209,7 +1174,7 @@ void AShooterPlayerController::UpdateSaveFileOnGameEnd(bool bIsWinner)
 		UShooterPersistentUser* const PersistentUser = GetPersistentUser();
 		if (PersistentUser)
 		{
-			PersistentUser->AddMatchResult(ShooterPlayerState->GetKills(), ShooterPlayerState->GetDeaths(), ShooterPlayerState->GetNumBulletsFired(), ShooterPlayerState->GetNumRocketsFired(), bIsWinner);
+			PersistentUser->AddMatchResult(ShooterPlayerState->GetKills(), ShooterPlayerState->GetDeaths(), bIsWinner);
 			PersistentUser->SaveIfDirty();
 		}
 	}

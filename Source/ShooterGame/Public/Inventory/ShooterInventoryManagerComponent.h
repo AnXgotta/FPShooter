@@ -25,6 +25,9 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	UPROPERTY()
+	UShooterInventoryHelper* InventoryHelper;
+
 public:	
 
 	// Sets default values for this component's properties
@@ -51,6 +54,11 @@ public:
 	int32 AddItemToInventory(FName NewItemId);
 	int32 AddItemToInventoryImp(FShooterInventoryItem NewItem);
 	bool RemoveItemFromInventory(FName ItemId, int32 Amount);
+
+
+	// Accessor/mutator
+	UFUNCTION()
+		FWeaponData GetWeaponConfigInfo(FString ItemNameId);
 
 private:
 

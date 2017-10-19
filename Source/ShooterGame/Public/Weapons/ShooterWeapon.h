@@ -26,6 +26,26 @@ namespace EWeaponState
 	};
 }
 
+namespace EWeaponPosition
+{
+	enum Socket
+	{
+		None,
+		Primary,
+		Secondary,	
+	};
+}
+
+UENUM()
+namespace EWeaponAmmo
+{
+	enum Type
+	{
+		Bullet_556,
+		Bullet_762,
+
+	};
+}
 
 USTRUCT()
 struct FWeaponAnim
@@ -46,20 +66,10 @@ class AShooterWeapon : public AActor
 {
 	GENERATED_UCLASS_BODY()
 
-	/** perform initial setup */
-	virtual void PostInitializeComponents() override;
+		/** perform initial setup */
+		virtual void PostInitializeComponents() override;
 
 	virtual void Destroyed() override;
-
-	//////////////////////////////////////////////////////////////////////////
-	// Ammo
-	
-	enum class EAmmoType
-	{
-		EBullet,
-		ERocket,
-		EMax,
-	};
 
 	/** [server] add ammo */
 	void GiveAmmo(int AddAmount);
@@ -67,10 +77,15 @@ class AShooterWeapon : public AActor
 	/** consume a bullet */
 	void UseAmmo();
 
+public:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Config")
+		TEnumAsByte<EWeaponAmmo::Type> AmmoType;
+
 	/** query ammo type */
-	virtual EAmmoType GetAmmoType() const
+	FORCEINLINE TEnumAsByte<EWeaponAmmo::Type> GetAmmoType()
 	{
-		return EAmmoType::EBullet;
+		return AmmoType;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -229,8 +244,16 @@ protected:
 	class AShooterCharacter* MyPawn;
 
 	/** weapon data */
-	UPROPERTY(EditDefaultsOnly, Category=Config)
+	UPROPERTY(Replicated, EditDefaultsOnly, Category=Config)
 	FWeaponData WeaponConfig;
+
+	public:
+
+		void SetWeaponConfig(FWeaponData NewWeaponConfig);
+
+		FORCEINLINE FWeaponData GetWeaponConfig() {
+			return WeaponConfig;
+		}
 
 private:
 	/** weapon mesh: 1st person view */
@@ -264,7 +287,7 @@ protected:
 
 	/** camera shake on firing */
 	UPROPERTY(EditDefaultsOnly, Category=Effects)
-	TSubclassOf<UCameraShake> CustomCameraShake;
+	TSubclassOf<UCameraShake> WeaponCameraShake;
 
 	/** force feedback effect to play when the weapon is fired */
 	UPROPERTY(EditDefaultsOnly, Category=Effects)
@@ -420,6 +443,14 @@ protected:
 	/** detaches weapon mesh from pawn */
 	void DetachMeshFromPawn();
 
+	/** position for the weapon to be attached when not equipped as curren */
+	TEnumAsByte<EWeaponPosition::Socket> WeaponPosition;
+
+	public:
+		FORCEINLINE TEnumAsByte<EWeaponPosition::Socket> GetWeaponPosition() { return WeaponPosition; }
+		FORCEINLINE void SetWeaponPosition(TEnumAsByte<EWeaponPosition::Socket> NewWeaponPosition) { WeaponPosition = NewWeaponPosition; }
+
+		protected:
 
 	//////////////////////////////////////////////////////////////////////////
 	// Weapon usage helpers

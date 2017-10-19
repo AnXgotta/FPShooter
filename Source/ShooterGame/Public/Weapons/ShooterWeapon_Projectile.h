@@ -53,11 +53,6 @@ class AShooterWeapon_Projectile : public AShooterWeapon
 
 protected:
 
-	virtual EAmmoType GetAmmoType() const override
-	{
-		return EAmmoType::ERocket;
-	}
-
 	/** weapon config */
 	UPROPERTY(EditDefaultsOnly, Category=Config)
 	FProjectileWeaponData ProjectileConfig;

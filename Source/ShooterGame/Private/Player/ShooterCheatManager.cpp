@@ -9,22 +9,6 @@ UShooterCheatManager::UShooterCheatManager(const FObjectInitializer& ObjectIniti
 {
 }
 
-void UShooterCheatManager::ToggleInfiniteAmmo()
-{
-	AShooterPlayerController* MyPC = GetOuterAShooterPlayerController();
-
-	MyPC->SetInfiniteAmmo(!MyPC->HasInfiniteAmmo());
-	MyPC->ClientMessage(FString::Printf(TEXT("Infinite ammo: %s"), MyPC->HasInfiniteAmmo() ? TEXT("ENABLED") : TEXT("off")));
-}
-
-void UShooterCheatManager::ToggleInfiniteClip()
-{
-	AShooterPlayerController* MyPC = GetOuterAShooterPlayerController();
-
-	MyPC->SetInfiniteClip(!MyPC->HasInfiniteClip());
-	MyPC->ClientMessage(FString::Printf(TEXT("Infinite clip: %s"), MyPC->HasInfiniteClip() ? TEXT("ENABLED") : TEXT("off")));
-}
-
 void UShooterCheatManager::ToggleMatchTimer()
 {
 	AShooterPlayerController* MyPC = GetOuterAShooterPlayerController();

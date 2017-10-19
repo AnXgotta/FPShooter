@@ -36,15 +36,6 @@ public:
 	
 protected:
 
-	virtual EAmmoType GetAmmoType() const override
-	{
-		return EAmmoType::EBullet;
-	}
-
-	/** weapon config */
-	UPROPERTY(EditDefaultsOnly, Category = Config)
-		FBallisticWeaponData BallisticConfig;
-
 	/** current spread from continuous firing */
 	float CurrentFiringSpread;
 

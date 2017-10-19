@@ -10,8 +10,9 @@ public class ShooterGame : ModuleRules
 			new string[] { 
 				"ShooterGame/Classes/Player",
 				"ShooterGame/Private",
-				"ShooterGame/Private/UI",
-				"ShooterGame/Private/UI/Menu",
+                "ShooterGame/Private/UI",
+                "ShooterGame/Private/UI/Inventory",
+                "ShooterGame/Private/UI/Menu",
 				"ShooterGame/Private/UI/Style",
 				"ShooterGame/Private/UI/Widgets",
             }

@@ -16,7 +16,7 @@ public:
 	void SaveIfDirty();
 
 	/** Records the result of a match. */
-	void AddMatchResult(int32 MatchKills, int32 MatchDeaths, int32 MatchBulletsFired, int32 MatchRocketsFired, bool bIsMatchWinner);
+	void AddMatchResult(int32 MatchKills, int32 MatchDeaths, bool bIsMatchWinner);
 
 	/** needed because we can recreate the subsystem that stores it */
 	void TellInputAboutKeybindings();
@@ -41,16 +41,6 @@ public:
 	FORCEINLINE int32 GetLosses() const
 	{
 		return Losses;
-	}
-
-	FORCEINLINE int32 GetBulletsFired() const
-	{
-		return BulletsFired;
-	}
-
-	FORCEINLINE int32 GetRocketsFired() const
-	{
-		return RocketsFired;
 	}
 
 	/** Is the y axis inverted? */
@@ -124,14 +114,6 @@ protected:
 	/** Lifetime count of match losses */
 	UPROPERTY()
 	int32 Losses;
-
-	/** Lifetime count of bullets fired */
-	UPROPERTY()
-	int32 BulletsFired;
-
-	/** Lifetime count of rockets fired */
-	UPROPERTY()
-	int32 RocketsFired;
 
 	/** how many bots join hosted game */
 	UPROPERTY()

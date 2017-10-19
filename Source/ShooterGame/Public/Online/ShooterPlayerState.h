@@ -53,9 +53,6 @@ class AShooterPlayerState : public APlayerState
 	/** get number of bullets fired this match */
 	int32 GetNumBulletsFired() const;
 
-	/** get number of rockets fired this match */
-	int32 GetNumRocketsFired() const;
-
 	/** get whether the player quit the match */
 	bool IsQuitter() const;
 
@@ -76,7 +73,6 @@ class AShooterPlayerState : public APlayerState
 
 	//We don't need stats about amount of ammo fired to be server authenticated, so just increment these with local functions
 	void AddBulletsFired(int32 NumBullets);
-	void AddRocketsFired(int32 NumRockets);
 
 	/** Set whether the player is a quitter */
 	void SetQuitter(bool bInQuitter);
@@ -102,10 +98,6 @@ protected:
 	/** number of bullets fired this match */
 	UPROPERTY()
 	int32 NumBulletsFired;
-
-	/** number of rockets fired this match */
-	UPROPERTY()
-	int32 NumRocketsFired;
 
 	/** whether the user quit the match */
 	UPROPERTY()

@@ -56,12 +56,6 @@ protected:
 	/** graphics quality option changed handler */
 	void GraphicsQualityOptionChanged(TSharedPtr<FShooterMenuItem> MenuItem, int32 MultiOptionIndex);
 
-	/** infinite ammo option changed handler */
-	void InfiniteAmmoOptionChanged(TSharedPtr<FShooterMenuItem> MenuItem, int32 MultiOptionIndex);
-
-	/** infinite clip option changed handler */
-	void InfiniteClipOptionChanged(TSharedPtr<FShooterMenuItem> MenuItem, int32 MultiOptionIndex);
-
 	/** freeze timer option changed handler */
 	void FreezeTimerOptionChanged(TSharedPtr<FShooterMenuItem> MenuItem, int32 MultiOptionIndex);
 

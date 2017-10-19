@@ -4,6 +4,7 @@
 #include "ShooterInteractableActorInterface.h"
 #include "ShooterItemPUPDInterface.h"
 #include "ShooterWorldActorBase.h"
+#include "ShooterWorldActor_Weapon.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterDamageType.h"
 #include "UI/ShooterHUD.h"
@@ -1338,12 +1339,12 @@ bool AShooterCharacter::ServerOnInteract_Validate() {
 }
 
 
-void AShooterCharacter::OnItemPickUp(FName ItemId) {
+void AShooterCharacter::OnItemPickUp(FString ItemId) {
 	if (!InventoryManagerComponent) {
 		// do somehitng?
 		return;
 	}
-	InventoryManagerComponent->AddItemToInventory(ItemId);
+	//InventoryManagerComponent->AddItemToInventory(ItemId);
 }
 
 void AShooterCharacter::OnItemPutDown() {
@@ -1471,6 +1472,9 @@ void AShooterCharacter::HandleItemInteraction(AActor* NewActor) {
 		switch (wActor->ItemType) {
 		case EShooterItemType::Weapon:
 			// do weapon stuff here - add to primary/secondary, swap, etc
+			if (NewActor->GetClass()->ImplementsInterface(UShooterItemPUPDInterface::StaticClass())) {
+				IShooterItemPUPDInterface::Execute_OnPickUp(NewActor, this);
+			}
 			break;
 		case EShooterItemType::Ammo:
 		case EShooterItemType::Consumable:
@@ -1483,13 +1487,34 @@ void AShooterCharacter::HandleItemInteraction(AActor* NewActor) {
 		}
 	}
 
-	if (NewActor->GetClass()->ImplementsInterface(UShooterInteractableActorInterface::StaticClass())) {
-		IShooterInteractableActorInterface::Execute_OnActorInteracted(NewActor, this);
+	//if (NewActor->GetClass()->ImplementsInterface(UShooterInteractableActorInterface::StaticClass())) {
+	//	IShooterInteractableActorInterface::Execute_OnActorInteracted(NewActor, this);
+	//}
+
+	
+
+
+}
+
+
+bool AShooterCharacter::OnPickupWeapon(FString ItemNameId, TArray<FText> WeaponAttachmentNames) {
+
+	FWeaponData NewWeaponData = InventoryManagerComponent->GetWeaponConfigInfo(ItemNameId);
+
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AShooterWeapon* NewWeapon = GetWorld()->SpawnActor<AShooterWeapon>(NewWeaponData.SpawnClass, SpawnInfo);
+	if (!NewWeapon) {
+		GEngine->AddOnScreenDebugMessage(-1, 5.0, FColor::Green, FString(TEXT("New Weapon NULL")));
+		return false;
 	}
 
-	if (NewActor->GetClass()->ImplementsInterface(UShooterItemPUPDInterface::StaticClass())) {
-		IShooterItemPUPDInterface::Execute_OnPickUp(NewActor, this);
-	}
+	NewWeapon->SetWeaponConfig(NewWeaponData);
 
+	AddWeapon(NewWeapon);
+
+	EquipWeapon(Inventory[Inventory.Num() - 1]);
+	
+	return true;
 
 }

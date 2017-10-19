@@ -13,9 +13,12 @@ AShooterWorldActor_Weapon::AShooterWorldActor_Weapon() {
 
 bool AShooterWorldActor_Weapon::OnPickUp_Implementation(AShooterCharacter* Player) {
 	if (Player) {
-		Player->OnItemPickUp(FName("AK47"));
+		if (Player->OnPickupWeapon(ItemNameId, AttachmentNameIds)) {
+			Destroy();
+			return true;
+		}
 	}
-	return true;
+	return false;
 }
 
 bool AShooterWorldActor_Weapon::OnPutDown_Implementation() {

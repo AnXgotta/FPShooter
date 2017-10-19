@@ -13,7 +13,7 @@ AShooterWorldActor_Consumable::AShooterWorldActor_Consumable() {
 
 bool AShooterWorldActor_Consumable::OnPickUp_Implementation(AShooterCharacter* Player) {
 	if (Player) {
-		Player->OnItemPickUp(FName("AK47"));
+		Player->OnItemPickUp("AK47");
 	}
 	return true;
 }

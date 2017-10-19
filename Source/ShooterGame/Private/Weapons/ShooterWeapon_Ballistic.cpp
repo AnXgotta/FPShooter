@@ -8,7 +8,7 @@
 
 AShooterWeapon_Ballistic::AShooterWeapon_Ballistic() {
 	CurrentFiringSpread = 0.0f;
-	BallisticConfig.MuzzleVelocity = BallisticConfig.MuzzleVelocity * 100.0f;
+	WeaponConfig.BallisticData.MuzzleVelocity = WeaponConfig.BallisticData.MuzzleVelocity * 100.0f;
 }
 
 
@@ -33,7 +33,7 @@ void AShooterWeapon_Ballistic::ServerBallisticTrace_Implementation(FVector Origi
 	{
 		Projectile->Instigator = Instigator;
 		Projectile->SetOwner(this);
-		Projectile->InitializeValues(BallisticConfig.MuzzleVelocity);
+		Projectile->InitializeValues(WeaponConfig.BallisticData.MuzzleVelocity);
 		UGameplayStatics::FinishSpawningActor(Projectile, SpawnTM);
 	}
 }
@@ -87,10 +87,10 @@ bool AShooterWeapon_Ballistic::ShouldDealDamage(AActor* TestActor) const
 void AShooterWeapon_Ballistic::DealDamage(const FHitResult& Impact, const FVector& ShootDir)
 {
 	FPointDamageEvent PointDmg;
-	PointDmg.DamageTypeClass = BallisticConfig.DamageType;
+	PointDmg.DamageTypeClass = WeaponConfig.BallisticData.DamageType;
 	PointDmg.HitInfo = Impact;
 	PointDmg.ShotDirection = ShootDir;
-	PointDmg.Damage = BallisticConfig.HitDamage;
+	PointDmg.Damage = WeaponConfig.BallisticData.HitDamage;
 
 	Impact.GetActor()->TakeDamage(PointDmg.Damage, PointDmg, MyPawn->Controller, this);
 }
@@ -100,17 +100,17 @@ void AShooterWeapon_Ballistic::DealDamage(const FHitResult& Impact, const FVecto
 
 FVector AShooterWeapon_Ballistic::GetAdjustedAim() const {
 	FVector finalAim = Super::GetAdjustedAim();
-	finalAim.ToOrientationRotator().Add(BallisticConfig.VerticalRotation, 0.0f, 0.0f);
+	finalAim.ToOrientationRotator().Add(WeaponConfig.BallisticData.VerticalRotation, 0.0f, 0.0f);
 	return finalAim;
 
 }
 
 float AShooterWeapon_Ballistic::GetCurrentSpread() const
 {
-	float FinalSpread = BallisticConfig.WeaponSpread + CurrentFiringSpread;
+	float FinalSpread = WeaponConfig.BallisticData.WeaponSpread + CurrentFiringSpread;
 	if (MyPawn && MyPawn->IsTargeting())
 	{
-		FinalSpread *= BallisticConfig.TargetingSpreadMod;
+		FinalSpread *= WeaponConfig.BallisticData.TargetingSpreadMod;
 	}
 
 	return FinalSpread;

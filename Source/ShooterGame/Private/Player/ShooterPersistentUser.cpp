@@ -134,12 +134,10 @@ void UShooterPersistentUser::SaveIfDirty()
 	}
 }
 
-void UShooterPersistentUser::AddMatchResult(int32 MatchKills, int32 MatchDeaths, int32 MatchBulletsFired, int32 MatchRocketsFired, bool bIsMatchWinner)
+void UShooterPersistentUser::AddMatchResult(int32 MatchKills, int32 MatchDeaths,bool bIsMatchWinner)
 {
 	Kills += MatchKills;
 	Deaths += MatchDeaths;
-	BulletsFired += MatchBulletsFired;
-	RocketsFired += MatchRocketsFired;
 	
 	if (bIsMatchWinner)
 	{

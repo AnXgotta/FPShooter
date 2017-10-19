@@ -10,12 +10,6 @@ class UShooterCheatManager : public UCheatManager
 	GENERATED_UCLASS_BODY()
 
 	UFUNCTION(exec)
-	void ToggleInfiniteAmmo();
-
-	UFUNCTION(exec)
-	void ToggleInfiniteClip();
-
-	UFUNCTION(exec)
 	void ToggleMatchTimer();
 
 	UFUNCTION(exec)

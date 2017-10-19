@@ -284,7 +284,13 @@ protected:
 
 	/////////  NEW WEAPON INVENTORY SYSTEM
 
+	/** currently equipped weapon */
+	UPROPERTY(Transient, Replicated)
+		class AShooterWeapon* PrimaryWeapon;
 
+	/** currently equipped weapon */
+	UPROPERTY(Transient, Replicated)
+		class AShooterWeapon* SecondaryWeapon;
 
 	////////  END NEW WEAPON INVENTORY SYSTEM
 
@@ -513,7 +519,11 @@ private:
 	FVector GetTraceStartLocation(const FVector& LookDir) const;
 	FVector GetLookDirection() const;
 
+	
+
 public:
+	UFUNCTION()
+		bool OnPickupWeapon(FString ItemNameId, TArray<FText> WeaponAttachmentNames);
 
 	UPROPERTY(BlueprintReadWrite, Category = "Interaction")
 		AActor* CurrentInteractingActor;
@@ -531,10 +541,38 @@ public:
 	UFUNCTION()
 		void HandleItemInteraction(AActor* NewActor);
 
-		void OnItemPickUp(FName ItemId);
+		void OnItemPickUp(FString ItemId);
 		void OnItemPutDown();
 
 
+		FORCEINLINE void PrintString(UWorld* World, const FString& InString, FLinearColor TextColor)
+		{
+
+			FString Prefix;
+			if (World)
+			{
+				if (World->WorldType == EWorldType::PIE)
+				{
+					switch (World->GetNetMode())
+					{
+					case NM_Client:
+						Prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID - 1);
+						break;
+					case NM_DedicatedServer:
+					case NM_ListenServer:
+						Prefix = FString::Printf(TEXT("Server: "));
+						break;
+					}
+				}
+			}
+
+			const FString FinalString = Prefix + InString;
+
+			float Duration = 10.0f;
+			GEngine->AddOnScreenDebugMessage(-1, Duration, TextColor.ToFColor(true), FinalString);
+
+
+		}
 
 
 };

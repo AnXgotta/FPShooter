@@ -96,12 +96,6 @@ public:
 	UFUNCTION(exec)
 	void SetGodMode(bool bEnable);
 
-	/** get infinite ammo cheat */
-	bool HasInfiniteAmmo() const;
-
-	/** get infinite clip cheat */
-	bool HasInfiniteClip() const;
-
 	/** get health regen cheat */
 	bool HasHealthRegen() const;
 

@@ -173,18 +173,6 @@ struct FWeaponRecoil
 	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
 		float HorizontalDisplacementRangeMaxAbsoluteValue;
 
-	/** amount to vertically bounce camera */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
-		float VerticalCameraBounceAmplitude;
-
-	/** amplitude to shake camera */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
-		float CameraShakeAmplitude;
-
-	/** frequency to shake camera */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
-		float CameraShakeFrequency;
-
 	/** rotate camera vertically on single shot */
 	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
 		bool bDisplacementOnSingleShot;
@@ -198,73 +186,11 @@ struct FWeaponRecoil
 	{
 		VerticalDisplacement = 2.0f;
 		HorizontalDisplacementRangeMaxAbsoluteValue = 1.0f;
-		VerticalCameraBounceAmplitude = 20.0f;
-		CameraShakeAmplitude = 0.3f;
-		CameraShakeFrequency = 50.0f;
 		bDisplacementOnSingleShot = false;
 		bDisplacementOnFullAutoShot = true;
 	}
 };
 
-USTRUCT()
-struct FWeaponData
-{
-	GENERATED_USTRUCT_BODY()
-
-		/** inifite ammo for reloads */
-		UPROPERTY(EditDefaultsOnly, Category = Ammo)
-		bool bInfiniteAmmo;
-
-	/** infinite ammo in clip, no reload required */
-	UPROPERTY(EditDefaultsOnly, Category = Ammo)
-		bool bInfiniteClip;
-
-	/** max ammo */
-	UPROPERTY(EditDefaultsOnly, Category = Ammo)
-		int32 MaxAmmo;
-
-	/** clip size */
-	UPROPERTY(EditDefaultsOnly, Category = Ammo)
-		int32 AmmoPerClip;
-
-	/** initial clips */
-	UPROPERTY(EditDefaultsOnly, Category = Ammo)
-		int32 InitialClips;
-
-	/** time between two consecutive shots */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-		float TimeBetweenShots;
-
-	/** failsafe reload duration if weapon doesn't have any animation for it */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-		float NoAnimReloadDuration;
-
-	/** is weapon single fire */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-		bool bSingleFire;
-
-	/** Weapon recoil information */
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-		FWeaponRecoil WeaponRecoil;
-
-	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
-		float Weight;
-
-	/** defaults */
-	FWeaponData()
-	{
-		bInfiniteAmmo = false;
-		bInfiniteClip = false;
-		MaxAmmo = 100;
-		AmmoPerClip = 20;
-		InitialClips = 4;
-		TimeBetweenShots = 0.2f;
-		NoAnimReloadDuration = 1.0f;
-		bSingleFire = false;
-		WeaponRecoil = FWeaponRecoil();
-		Weight = 0.0f;
-	}
-};
 
 USTRUCT(BlueprintType)
 struct FBallisticWeaponData
@@ -324,6 +250,63 @@ struct FBallisticWeaponData
 		DamageType = UDamageType::StaticClass();
 		ClientSideHitLeeway = 200.0f;
 		AllowedViewDotHitDir = 0.8f;
+	}
+};
+
+
+USTRUCT()
+struct FWeaponData
+{
+	GENERATED_USTRUCT_BODY()
+
+		UPROPERTY(EditDefaultsOnly, Category = SpawnClass)
+		TSubclassOf<class AShooterWeapon> SpawnClass;
+
+	/** max ammo */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 MaxAmmo;
+
+	/** clip size */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 AmmoPerClip;
+
+	/** initial clips */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 InitialClips;
+
+	/** time between two consecutive shots */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float TimeBetweenShots;
+
+	/** failsafe reload duration if weapon doesn't have any animation for it */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float NoAnimReloadDuration;
+
+	/** is weapon single fire */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		bool bSingleFire;
+
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float Weight;
+
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		FBallisticWeaponData BallisticData;
+
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		FWeaponRecoil RecoilData;
+
+	/** defaults */
+	FWeaponData()
+	{
+		MaxAmmo = 100;
+		AmmoPerClip = 20;
+		InitialClips = 4;
+		TimeBetweenShots = 0.2f;
+		NoAnimReloadDuration = 1.0f;
+		bSingleFire = false;
+		Weight = 0.0f;
+		BallisticData = FBallisticWeaponData();
+		RecoilData = FWeaponRecoil();
 	}
 };
 

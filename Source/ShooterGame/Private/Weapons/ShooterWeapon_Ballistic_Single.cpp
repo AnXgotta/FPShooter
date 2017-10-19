@@ -25,5 +25,5 @@ void AShooterWeapon_Ballistic_Single::FireWeapon()
 
 	ServerBallisticTrace(StartTrace, ShootDir);
 
-	CurrentFiringSpread = FMath::Min(BallisticConfig.FiringSpreadMax, CurrentFiringSpread + BallisticConfig.FiringSpreadIncrement);
+	CurrentFiringSpread = FMath::Min(WeaponConfig.BallisticData.FiringSpreadMax, CurrentFiringSpread + WeaponConfig.BallisticData.FiringSpreadIncrement);
 }

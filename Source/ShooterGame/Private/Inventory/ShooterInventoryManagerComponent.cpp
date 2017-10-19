@@ -8,6 +8,8 @@
 // Sets default values for this component's properties
 UShooterInventoryManagerComponent::UShooterInventoryManagerComponent()
 {
+
+	InventoryHelper = NewObject<UShooterInventoryHelper>();
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	bReplicates = true;
@@ -43,7 +45,7 @@ bool UShooterInventoryManagerComponent::InitializeInventory(AShooterCharacter* N
 	if (PC) {
 		AShooterPlayerHUD* HUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
 		if (HUD) {
-InventoryWidget = HUD->GetInventoryWidget();
+			InventoryWidget = HUD->GetInventoryWidget();
 		}
 	}
 	return Pawn && InventoryWidget;
@@ -188,3 +190,11 @@ int UShooterInventoryManagerComponent::RemoveItem(int ItemIndex, int Amount) {
 	return RemainingAmount;
 }
 
+
+
+// ACCESOR / MUTATOR
+
+FWeaponData UShooterInventoryManagerComponent::GetWeaponConfigInfo(FString ItemNameId) {
+	return InventoryHelper->GetWeaponInventoryInfo(ItemNameId);
+
+}

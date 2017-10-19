@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "ShooterWeapon.h"
 #include "ShooterTypes.h"
+#include "ShooterInventoryHelper.h"
 #include "Components/ActorComponent.h"
 #include "ShooterInventoryComponent.generated.h"
 
@@ -45,5 +46,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	TArray<FShooterInventoryItem> GetInventory();
+
+
+	
+
+
 	
 };

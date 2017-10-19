@@ -8,8 +8,6 @@ AShooterPlayerState::AShooterPlayerState(const FObjectInitializer& ObjectInitial
 	TeamNumber = 0;
 	NumKills = 0;
 	NumDeaths = 0;
-	NumBulletsFired = 0;
-	NumRocketsFired = 0;
 	bQuitter = false;
 }
 
@@ -21,8 +19,6 @@ void AShooterPlayerState::Reset()
 	//SetTeamNum(0);
 	NumKills = 0;
 	NumDeaths = 0;
-	NumBulletsFired = 0;
-	NumRocketsFired = 0;
 	bQuitter = false;
 }
 
@@ -51,16 +47,6 @@ void AShooterPlayerState::SetTeamNum(int32 NewTeamNumber)
 void AShooterPlayerState::OnRep_TeamColor()
 {
 	UpdateTeamColors();
-}
-
-void AShooterPlayerState::AddBulletsFired(int32 NumBullets)
-{
-	NumBulletsFired += NumBullets;
-}
-
-void AShooterPlayerState::AddRocketsFired(int32 NumRockets)
-{
-	NumRocketsFired += NumRockets;
 }
 
 void AShooterPlayerState::SetQuitter(bool bInQuitter)
@@ -110,16 +96,6 @@ int32 AShooterPlayerState::GetDeaths() const
 float AShooterPlayerState::GetScore() const
 {
 	return Score;
-}
-
-int32 AShooterPlayerState::GetNumBulletsFired() const
-{
-	return NumBulletsFired;
-}
-
-int32 AShooterPlayerState::GetNumRocketsFired() const
-{
-	return NumRocketsFired;
 }
 
 bool AShooterPlayerState::IsQuitter() const

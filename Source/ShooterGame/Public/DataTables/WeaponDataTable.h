@@ -1,89 +1,101 @@
+#include "ShooterTypes.h"
+#include "ShooterGame.h"
 #include "WeaponDataTable.generated.h"
 #pragma once
+
+
 
 USTRUCT(BlueprintType)
 struct FWeaponDataTable : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
-public:
+		UPROPERTY(EditDefaultsOnly, Category = SpawnClass)
+		TSubclassOf<class AShooterWeapon> SpawnClass;
+
+	/** max ammo */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 MaxAmmo;
+
+	/** clip size */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 AmmoPerClip;
+
+	/** initial clips */
+	UPROPERTY(EditDefaultsOnly, Category = Ammo)
+		int32 InitialClips;
+
+	/** time between two consecutive shots */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float TimeBetweenShots;
+
+	/** failsafe reload duration if weapon doesn't have any animation for it */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float NoAnimReloadDuration;
+
+	/** is weapon single fire */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		bool bSingleFire;
+
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		float Weight;
 
 	/** muzzle velocity (M/s) */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 		float MuzzleVelocity;
 
 	/** Zeroing (Degrees) */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 		float VerticalRotation;
 
 	/** base weapon spread (degrees) */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
 		float WeaponSpread;
 
 	/** targeting spread modifier */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
 		float TargetingSpreadMod;
 
 	/** continuous firing: spread increment */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
 		float FiringSpreadIncrement;
 
 	/** continuous firing: max increment */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = Accuracy)
 		float FiringSpreadMax;
 
 	/** damage amount */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 		int32 HitDamage;
 
 	/** type of damage */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 		TSubclassOf<UDamageType> DamageType;
 
-	/** clip size */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
-		int32 AmmoPerClip;
+	/** hit verification: scale for bounding box of hit actor */
+	UPROPERTY(EditDefaultsOnly, Category = HitVerification)
+		float ClientSideHitLeeway;
 
-	/** time between two consecutive shots */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
-		float TimeBetweenShots;
-
-	/** is weapon single fire */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
-		bool bSingleFire;
+	/** hit verification: threshold for dot product between view direction and hit direction */
+	UPROPERTY(EditDefaultsOnly, Category = HitVerification)
+		float AllowedViewDotHitDir;
 
 	/** amount to vertically displace camera on shot */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
 		float VerticalDisplacement;
 
 	/** amount to vertically displace camera on shot */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
 		float HorizontalDisplacementRangeMaxAbsoluteValue;
 
-	/** amount to vertically bounce camera */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
-		float VerticalCameraBounceAmplitude;
-
-	/** amplitude to shake camera */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
-		float CameraShakeAmplitude;
-
-	/** frequency to shake camera */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
-		float CameraShakeFrequency;
-
 	/** rotate camera vertically on single shot */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
 		bool bDisplacementOnSingleShot;
 
 	/** rotate camera vertically on full auto shots */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
+	UPROPERTY(EditDefaultsOnly, Category = WeaponRecoil)
 		bool bDisplacementOnFullAutoShot;
 
-	/** rotate camera vertically on full auto shots */
-	UPROPERTY(EditAnywhere, Category = WeaponStat)
-		float Weight;
-
+	/** defaults */
 	FWeaponDataTable() {}
-
 };

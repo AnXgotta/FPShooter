@@ -52,6 +52,9 @@ AShooterWeapon::AShooterWeapon(const FObjectInitializer& ObjectInitializer) : Su
 	SetRemoteRoleForBackwardsCompat(ROLE_SimulatedProxy);
 	bReplicates = true;
 	bNetUseOwnerRelevancy = true;
+
+	WeaponPosition = EWeaponPosition::None;
+
 }
 
 void AShooterWeapon::PostInitializeComponents()
@@ -347,7 +350,7 @@ bool AShooterWeapon::CanFire() const
 bool AShooterWeapon::CanReload() const
 {
 	bool bCanReload = (!MyPawn || MyPawn->CanReload());
-	bool bGotAmmo = ( CurrentAmmoInClip < WeaponConfig.AmmoPerClip) && (CurrentAmmo - CurrentAmmoInClip > 0 || HasInfiniteClip());
+	bool bGotAmmo = ( CurrentAmmoInClip < WeaponConfig.AmmoPerClip) && (CurrentAmmo - CurrentAmmoInClip > 0);
 	bool bStateOKToReload = ( ( CurrentState ==  EWeaponState::Idle ) || ( CurrentState == EWeaponState::Firing) );
 	return ( ( bCanReload == true ) && ( bGotAmmo == true ) && ( bStateOKToReload == true) );	
 }
@@ -371,15 +374,9 @@ void AShooterWeapon::GiveAmmo(int AddAmount)
 
 void AShooterWeapon::UseAmmo()
 {
-	if (!HasInfiniteAmmo())
-	{
-		CurrentAmmoInClip--;
-	}
 
-	if (!HasInfiniteAmmo() && !HasInfiniteClip())
-	{
-		CurrentAmmo--;
-	}
+	CurrentAmmoInClip--;
+	CurrentAmmo--;	
 
 	AShooterAIController* BotAI = MyPawn ? Cast<AShooterAIController>(MyPawn->GetController()) : NULL;	
 	AShooterPlayerController* PlayerController = MyPawn ? Cast<AShooterPlayerController>(MyPawn->GetController()) : NULL;
@@ -387,25 +384,11 @@ void AShooterWeapon::UseAmmo()
 	{
 		BotAI->CheckAmmo(this);
 	}
-	else if(PlayerController)
-	{
-		AShooterPlayerState* PlayerState = Cast<AShooterPlayerState>(PlayerController->PlayerState);
-		switch (GetAmmoType())
-		{
-			case EAmmoType::ERocket:
-				PlayerState->AddRocketsFired(1);
-				break;
-			case EAmmoType::EBullet:
-			default:
-				PlayerState->AddBulletsFired(1);
-				break;			
-		}
-	}
 }
 
 void AShooterWeapon::HandleFiring()
 {
-	if ((CurrentAmmoInClip > 0 || HasInfiniteClip() || HasInfiniteAmmo()) && CanFire())
+	if (CurrentAmmoInClip > 0 && CanFire())
 	{
 		if (GetNetMode() != NM_DedicatedServer)
 		{
@@ -485,20 +468,11 @@ void AShooterWeapon::ReloadWeapon()
 {
 	int32 ClipDelta = FMath::Min(WeaponConfig.AmmoPerClip - CurrentAmmoInClip, CurrentAmmo - CurrentAmmoInClip);
 
-	if (HasInfiniteClip())
-	{
-		ClipDelta = WeaponConfig.AmmoPerClip - CurrentAmmoInClip;
-	}
-
 	if (ClipDelta > 0)
 	{
 		CurrentAmmoInClip += ClipDelta;
 	}
 
-	if (HasInfiniteClip())
-	{
-		CurrentAmmo = FMath::Max(CurrentAmmoInClip, CurrentAmmo);
-	}
 }
 
 void AShooterWeapon::SetWeaponState(EWeaponState::Type NewState)
@@ -801,13 +775,12 @@ void AShooterWeapon::SimulateWeaponFire()
 	AShooterPlayerController* PC = (MyPawn != NULL) ? Cast<AShooterPlayerController>(MyPawn->Controller) : NULL;
 	if (PC != NULL && PC->IsLocalController())
 	{
-
-		if (CustomCameraShake != NULL)
+		if (WeaponCameraShake != NULL)
 		{
-			PC->ClientPlayCameraShake(CustomCameraShake, 1);
-			if ((!bRefiring && WeaponConfig.WeaponRecoil.bDisplacementOnSingleShot) || (bRefiring && WeaponConfig.WeaponRecoil.bDisplacementOnFullAutoShot)) {
-				MyPawn->AddControllerPitchInput(-WeaponConfig.WeaponRecoil.VerticalDisplacement);
-				MyPawn->AddControllerYawInput(FMath::RandRange(-WeaponConfig.WeaponRecoil.HorizontalDisplacementRangeMaxAbsoluteValue, WeaponConfig.WeaponRecoil.HorizontalDisplacementRangeMaxAbsoluteValue));
+			PC->ClientPlayCameraShake(WeaponCameraShake);
+			if ((!bRefiring && WeaponConfig.RecoilData.bDisplacementOnSingleShot) || (bRefiring && WeaponConfig.RecoilData.bDisplacementOnFullAutoShot)) {
+				MyPawn->AddControllerPitchInput(-WeaponConfig.RecoilData.VerticalDisplacement);
+				MyPawn->AddControllerYawInput(FMath::RandRange(-WeaponConfig.RecoilData.HorizontalDisplacementRangeMaxAbsoluteValue, WeaponConfig.RecoilData.HorizontalDisplacementRangeMaxAbsoluteValue));
 			}
 		}
 		if (FireForceFeedback != NULL)
@@ -830,8 +803,11 @@ void AShooterWeapon::GetLifetimeReplicatedProps( TArray< FLifetimeProperty > & O
 
 	DOREPLIFETIME_CONDITION( AShooterWeapon, CurrentAmmo,		COND_OwnerOnly );
 	DOREPLIFETIME_CONDITION( AShooterWeapon, CurrentAmmoInClip, COND_OwnerOnly );
+	DOREPLIFETIME_CONDITION( AShooterWeapon, WeaponConfig,		COND_OwnerOnly );
 
 	DOREPLIFETIME_CONDITION( AShooterWeapon, bPendingReload,	COND_SkipOwner );
+
+
 }
 
 USkeletalMeshComponent* AShooterWeapon::GetWeaponMesh() const
@@ -879,17 +855,6 @@ int32 AShooterWeapon::GetMaxAmmo() const
 	return WeaponConfig.MaxAmmo;
 }
 
-bool AShooterWeapon::HasInfiniteAmmo() const
-{
-	const AShooterPlayerController* MyPC = (MyPawn != NULL) ? Cast<const AShooterPlayerController>(MyPawn->Controller) : NULL;
-	return WeaponConfig.bInfiniteAmmo || (MyPC && MyPC->HasInfiniteAmmo());
-}
-
-bool AShooterWeapon::HasInfiniteClip() const
-{
-	const AShooterPlayerController* MyPC = (MyPawn != NULL) ? Cast<const AShooterPlayerController>(MyPawn->Controller) : NULL;
-	return WeaponConfig.bInfiniteClip || (MyPC && MyPC->HasInfiniteClip());
-}
 
 float AShooterWeapon::GetEquipStartedTime() const
 {
@@ -900,3 +865,7 @@ float AShooterWeapon::GetEquipDuration() const
 {
 	return EquipDuration;
 }
+
+	void AShooterWeapon::SetWeaponConfig(FWeaponData NewWeaponConfig) {
+		WeaponConfig = NewWeaponConfig;
+	}
