@@ -16,25 +16,4 @@ class SHOOTERGAME_API UShooterInventoryWidget : public UShooterWidgetBase
 {
 	GENERATED_BODY()
 
-public:
-	
-		UPROPERTY(BlueprintReadWrite, Category = "Inventory")
-		UVerticalBox* ProximityCPPRef;
-
-		UPROPERTY(BlueprintReadWrite, Category = "Inventory")
-			UVerticalBox* InventoryCPPRef;
-
-		UPROPERTY(BlueprintReadWrite, Category = "Inventory")
-			USizeBox* PrimaryCPPRef;
-
-		UPROPERTY(BlueprintReadWrite, Category = "Inventory")
-			USizeBox* SecondaryCPPRef;
-
-		UPROPERTY(BlueprintReadWrite, Category = "Inventory")
-			USizeBox* Item1CPPRef;
-
-		UPROPERTY(BlueprintReadWrite, Category = "Inventory")
-			USizeBox* Item2CPPRef;
-	
-	
 };

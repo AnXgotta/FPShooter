@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "ShooterInventoryWidget.h"
 #include "ShooterTypes.h"
 #include "ShooterInventoryManagerComponent.generated.h"
 
@@ -16,9 +15,8 @@ class SHOOTERGAME_API UShooterInventoryManagerComponent : public UActorComponent
 
 
 	AShooterCharacter* Pawn;
-	UShooterInventoryWidget* InventoryWidget;
 
-	UShooterInventoryComponent* InventoryComponent;
+	class UShooterInventoryComponent* InventoryComponent;
 	
 
 protected:
@@ -26,7 +24,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY()
-	UShooterInventoryHelper* InventoryHelper;
+	class UShooterInventoryHelper* InventoryHelper;
 
 public:	
 
@@ -45,7 +43,7 @@ public:
 		bool bIsContainerOpen;
 
 	
-	bool InitializeInventory(AShooterCharacter* NewPawn, float MaxWeight);
+	//bool InitializeInventory(AShooterCharacter* NewPawn, float MaxWeight);
 		
 	// do these need to be Client-Reliable??
 	void OpenInventory();

@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class SHOOTERGAME_API AShooterWorldActor_Consumable : public AShooterWorldActorBase, public IShooterItemPUPDInterface, public IShooterItemConsumeInterface
+class SHOOTERGAME_API AShooterWorldActor_Consumable : public AShooterWorldActorBase
 {
 	GENERATED_BODY()
 	
@@ -24,19 +24,5 @@ public:
 
 	FORCEINLINE FText GetConsumableNameId() { return ConsumableNameId; }
 
-	UFUNCTION()
-		virtual void OnWasInteracted() override;
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "IPUPD")
-		bool OnPickUp(AShooterCharacter* Player);
-	virtual bool OnPickUp_Implementation(AShooterCharacter* Player) override;
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "IPUPD")
-		bool OnPutDown();
-	virtual bool OnPutDown_Implementation() override;
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "IPUPD")
-		bool OnConsumeItem(AShooterCharacter* Player);
-	virtual bool OnConsumeItem_Implementation(AShooterCharacter* Player) override;
 	
 };

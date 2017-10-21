@@ -3,8 +3,6 @@
 #pragma once
 
 #include "ShooterTypes.h"
-#include "ShooterInventoryComponent.h"
-#include "ShooterInventoryManagerComponent.h"
 #include "ShooterCharacter.generated.h"
 
 UCLASS(Abstract)
@@ -466,10 +464,10 @@ protected:
 
 
 	UPROPERTY()
-	UShooterInventoryComponent* InventoryComponent;
+	class UShooterInventoryComponent* InventoryComponent;
 
 	UPROPERTY()
-	UShooterInventoryManagerComponent* InventoryManagerComponent;
+	class UShooterInventoryManagerComponent* InventoryManagerComponent;
 
 	public:
 
@@ -479,7 +477,7 @@ protected:
 		UFUNCTION()
 			void InitializeInventoryComponents();
 
-		FORCEINLINE UShooterInventoryComponent* GetInventoryComponent() { return InventoryComponent; }
+		FORCEINLINE class UShooterInventoryComponent* GetInventoryComponent() { return InventoryComponent; }
 
 	// INTERACTION
 

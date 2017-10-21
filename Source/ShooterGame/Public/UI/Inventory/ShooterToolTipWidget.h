@@ -14,11 +14,5 @@ UCLASS()
 class SHOOTERGAME_API UShooterToolTipWidget : public UShooterWidgetBase
 {
 	GENERATED_BODY()
-	
-public:
 
-		UPROPERTY(BlueprintReadWrite, Category = "Config")
-		FInventoryItemToolTip ToolTipInfo;
-	
-	
 };

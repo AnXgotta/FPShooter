@@ -15,11 +15,7 @@ class SHOOTERGAME_API AShooterPlayerHUD : public AHUD
 {
 	GENERATED_BODY()
 			
-public:
 
-	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
-		UShooterInventoryWidget* InventoryWidgetCPPRef;
 
-	FORCEINLINE UShooterInventoryWidget* GetInventoryWidget() { return InventoryWidgetCPPRef; }
 
 };

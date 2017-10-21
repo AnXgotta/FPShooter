@@ -7,7 +7,7 @@
 #include "ShooterWorldActorBase.generated.h"
 
 UCLASS()
-class SHOOTERGAME_API AShooterWorldActorBase : public AActor, public IShooterInteractableActorInterface
+class SHOOTERGAME_API AShooterWorldActorBase : public AActor
 {
 	GENERATED_BODY()
 
@@ -50,29 +50,5 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Mesh)
 	int32 CustomOutlineDepthValue;
-	 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		bool OnActorInteracted(AShooterCharacter* Player);
-	virtual bool OnActorInteracted_Implementation(AShooterCharacter* Player) override;
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		bool BeginOutlineFocus();
-	virtual bool BeginOutlineFocus_Implementation() override;
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		bool EndOutlineFocus();
-	virtual bool EndOutlineFocus_Implementation() override;
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		bool GetIsActorInteractable();
-	virtual bool GetIsActorInteractable_Implementation() override;
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		FString GetInteractActionText();
-	virtual FString GetInteractActionText_Implementation() override;
-
 	
 };

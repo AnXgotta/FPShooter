@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ShooterGame.h"
-#include "ShooterPlayerHUD.h"
+#include "ShooterInventoryComponent.h"
+#include "ShooterInventoryHelper.h"
 #include "ShooterInventoryManagerComponent.h"
 
 
@@ -36,37 +37,26 @@ void UShooterInventoryManagerComponent::BeginPlay()
 //
 //	// ...
 //}
-
-bool UShooterInventoryManagerComponent::InitializeInventory(AShooterCharacter* NewPawn, float MaxWeight) {
-	Pawn = NewPawn;
-	InventoryComponent = Pawn->GetInventoryComponent();
-	InventoryComponent->InventoryMaxWeight = MaxWeight;
-	AShooterPlayerController* PC = Cast<AShooterPlayerController>(Pawn->GetController());
-	if (PC) {
-		AShooterPlayerHUD* PlayerHUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
-		if (PlayerHUD) {
-			InventoryWidget = PlayerHUD->GetInventoryWidget();
-		}
-	}
-	return Pawn && InventoryWidget;
-}
+//
+//bool UShooterInventoryManagerComponent::InitializeInventory(AShooterCharacter* NewPawn, float MaxWeight) {
+//	Pawn = NewPawn;
+//	InventoryComponent = Pawn->GetInventoryComponent();
+//	InventoryComponent->InventoryMaxWeight = MaxWeight;
+//	AShooterPlayerController* PC = Cast<AShooterPlayerController>(Pawn->GetController());
+//	if (PC) {
+//		
+//	}
+//	return Pawn;
+//}
 
 void UShooterInventoryManagerComponent::OpenInventory() {
 	UE_LOG(LogTemp, Warning, TEXT("InvenManager Open Inventory"));
-	if (InventoryWidget) {
-		UE_LOG(LogTemp, Warning, TEXT("InvenManager Open Inven - Inventory not null"));
-		InventoryWidget->SetVisibility(ESlateVisibility::Visible);
-		bIsInventoryOpen = true;
-	}
+	
 }
 
 void UShooterInventoryManagerComponent::CloseInventory() {
 	UE_LOG(LogTemp, Warning, TEXT("InvenManager Close Inventory"));
-	if (InventoryWidget) {
-		UE_LOG(LogTemp, Warning, TEXT("InvenManager Open Inven - Inventory not null"));
-		InventoryWidget->SetVisibility(ESlateVisibility::Hidden);
-		bIsInventoryOpen = false;
-	}
+	
 }
 
 int UShooterInventoryManagerComponent::AddItemToInventory(FName NewItemId) {

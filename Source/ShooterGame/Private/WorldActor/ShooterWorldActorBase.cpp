@@ -27,36 +27,16 @@ void AShooterWorldActorBase::BeginPlay(){
 	Mesh->SetCustomDepthStencilValue(CustomOutlineDepthValue);
 }
 
-// Called every frame
-void AShooterWorldActorBase::Tick(float DeltaTime){
-	Super::Tick(DeltaTime);
 
-}
-
-bool AShooterWorldActorBase::OnActorInteracted_Implementation(AShooterCharacter* Player) {
-	// server only
-	GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Server Interacted Base")));
-	return true;
-}
-
-bool AShooterWorldActorBase::BeginOutlineFocus_Implementation() {
-	Mesh->SetRenderCustomDepth(true);
-	return true;
-}
-
-bool AShooterWorldActorBase::EndOutlineFocus_Implementation() {
-	Mesh->SetRenderCustomDepth(false);
-	return true;
-}
-
-bool AShooterWorldActorBase::GetIsActorInteractable_Implementation() {
-	return true;
-}
-
-FString AShooterWorldActorBase::GetInteractActionText_Implementation() {
-	return FString(TEXT("Interact"));
-}
-
+//bool AShooterWorldActorBase::BeginOutlineFocus_Implementation() {
+//	Mesh->SetRenderCustomDepth(true);
+//	return true;
+//}
+//
+//bool AShooterWorldActorBase::EndOutlineFocus_Implementation() {
+//	Mesh->SetRenderCustomDepth(false);
+//	return true;
+//}
 
 void AShooterWorldActorBase::OnRep_WasInteracted() {
 	// replicated to clients to do whatever shit... sounds or destroy self or whatever

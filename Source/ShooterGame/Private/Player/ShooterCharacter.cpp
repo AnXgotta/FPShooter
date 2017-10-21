@@ -1359,20 +1359,11 @@ void AShooterCharacter::BuildPauseReplicationCheckPoints(TArray<FVector>& Releva
 // INVENTORY
 
 void AShooterCharacter::InitializeInventoryComponents() {
-	InventoryManagerComponent->InitializeInventory(this, InitialMaxInventoryWeight);
+	//InventoryManagerComponent->InitializeInventory(this, InitialMaxInventoryWeight);
 }
 
 void AShooterCharacter::OnToggleInventory() {
-	if (InventoryManagerComponent) {
-		if (InventoryManagerComponent->bIsInventoryOpen) {
-			UE_LOG(LogTemp, Warning, TEXT("Player Close Inven"));
-			InventoryManagerComponent->CloseInventory();
-		}
-		else {
-			UE_LOG(LogTemp, Warning, TEXT("Player Open Inven"));
-			InventoryManagerComponent->OpenInventory();
-		} 
-	}
+
 }
 
 // INTERACTION

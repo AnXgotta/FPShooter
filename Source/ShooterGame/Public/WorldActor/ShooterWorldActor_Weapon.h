@@ -12,7 +12,7 @@
  * 
  */
 UCLASS()
-class SHOOTERGAME_API AShooterWorldActor_Weapon : public AShooterWorldActorBase, public IShooterItemPUPDInterface
+class SHOOTERGAME_API AShooterWorldActor_Weapon : public AShooterWorldActorBase
 {
 	GENERATED_BODY()
 
@@ -20,27 +20,11 @@ class SHOOTERGAME_API AShooterWorldActor_Weapon : public AShooterWorldActorBase,
 	UPROPERTY(EditDefaultsOnly, Category = Config)
 	TArray<FText> AttachmentNameIds;
 
-protected:
-
-	UFUNCTION()
-		virtual void OnWasInteracted() override;
-
 public:
 
 	AShooterWorldActor_Weapon();
 
 	FORCEINLINE TArray<FText> GetAttachmentNameIds() { return AttachmentNameIds; }
-	
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "IPUPD")
-		bool OnPickUp(AShooterCharacter* Player);
-	virtual bool OnPickUp_Implementation(AShooterCharacter* Player) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "IPUPD")
-		bool OnPutDown();
-	virtual bool OnPutDown_Implementation() override;
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interactable")
-		bool OnActorInteracted(AShooterCharacter* Player);
-	virtual bool OnActorInteracted_Implementation(AShooterCharacter* Player) override;
 
 };
