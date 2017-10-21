@@ -8,10 +8,10 @@
 AShooterWorldActorBase::AShooterWorldActorBase()
 {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	Mesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	Mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	Mesh->SetCollisionResponseToChannel(COLLISION_INTERACTABLE, ECollisionResponse::ECR_Block);
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	StaticMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	StaticMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	StaticMesh->SetCollisionResponseToChannel(COLLISION_INTERACTABLE, ECollisionResponse::ECR_Block);
 
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
@@ -24,19 +24,21 @@ AShooterWorldActorBase::AShooterWorldActorBase()
 // Called when the game starts or when spawned
 void AShooterWorldActorBase::BeginPlay(){
 	Super::BeginPlay();
-	Mesh->SetCustomDepthStencilValue(CustomOutlineDepthValue);
+	StaticMesh->SetCustomDepthStencilValue(CustomOutlineDepthValue);
 }
 
 
-//bool AShooterWorldActorBase::BeginOutlineFocus_Implementation() {
-//	Mesh->SetRenderCustomDepth(true);
-//	return true;
-//}
-//
-//bool AShooterWorldActorBase::EndOutlineFocus_Implementation() {
-//	Mesh->SetRenderCustomDepth(false);
-//	return true;
-//}
+void AShooterWorldActorBase::OnFocusBegin() {
+	StaticMesh->SetRenderCustomDepth(true);
+}
+
+void AShooterWorldActorBase::OnFocusEnd() {
+	StaticMesh->SetRenderCustomDepth(false);
+}
+
+FString AShooterWorldActorBase::GetInteractionText() {
+	return InteractionText;
+}
 
 void AShooterWorldActorBase::OnRep_WasInteracted() {
 	// replicated to clients to do whatever shit... sounds or destroy self or whatever

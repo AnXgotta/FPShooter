@@ -6,7 +6,7 @@
 
 
 AShooterWorldActor_Consumable::AShooterWorldActor_Consumable() {
-	ItemType = EShooterItemType::Consumable;
+	InteractableType = EShooterInteractableType::Consumable;
 	CustomOutlineDepthValue = 4;
 }
 

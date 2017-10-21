@@ -2,22 +2,21 @@
 
 #include "ShooterGame.h"
 #include "WeaponDataTable.h"
-#include "ShooterInventoryHelper.h"
+#include "ShooterGame_BR.h"
 
 
-UShooterInventoryHelper::UShooterInventoryHelper() {
+AShooterGame_BR::AShooterGame_BR() {
+
 	ConstructorHelpers::FObjectFinder<UDataTable> WeaponInfoTable(TEXT("DataTable'/Game/DataTables/WeaponInfo_DataTable.WeaponInfo_DataTable'"));
-	//static::ConstructorHelpers::FObjectFinder<UDataTable> WeaponUITable(TEXT("DataTable'/Game/DataTables/WeaponUI_DataTable.WeaponUI_DataTable'"));
 
-	WeaponInfoDT = WeaponInfoTable.Object;
-	
-	/*if (WeaponUITable.Object) {
-		WeaponUIInfoDT = WeaponUITable;
-	}*/
+	if (WeaponInfoTable.Object != NULL) {
+		WeaponInfoDT = WeaponInfoTable.Object;
+	}
 
 }
 
-FWeaponData UShooterInventoryHelper::GetWeaponInventoryInfo(FString WeaponId) {
+
+FWeaponData AShooterGame_BR::Data_GetWeaponDefaultData(FString WeaponId) {
 	GEngine->AddOnScreenDebugMessage(-1, 5.0, FColor::Green, FString(TEXT("StartWeapon Info Table Search")));
 	if (WeaponInfoDT == nullptr) {
 		GEngine->AddOnScreenDebugMessage(-1, 5.0, FColor::Green, FString(TEXT("Server DataTable not found")));

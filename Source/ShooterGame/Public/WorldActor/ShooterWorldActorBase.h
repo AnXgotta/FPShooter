@@ -9,10 +9,12 @@
 UCLASS()
 class SHOOTERGAME_API AShooterWorldActorBase : public AActor
 {
-	GENERATED_BODY()
 
+	GENERATED_BODY()	
 
 protected:
+
+	int32 CustomOutlineDepthValue;
 
 
 	// Called when the game starts or when spawned
@@ -20,21 +22,21 @@ protected:
 
 	/** weapon data */
 	UPROPERTY(EditDefaultsOnly, Category = Config)
-		FString ItemNameId;
+	FString ItemNameId;
 
 	/** weapon data */
 	UPROPERTY(EditDefaultsOnly, Category = Config)
-		FString InteractionText;
+	FString InteractionText;
 
 	UPROPERTY(ReplicatedUsing = OnRep_WasInteracted)
-		bool bWasInteracted;
+	bool bWasInteracted;
 
 	UFUNCTION()
-		virtual void OnWasInteracted();
+	virtual void OnWasInteracted();
 
 	/** [client] interaction happened */
 	UFUNCTION()
-		void OnRep_WasInteracted();
+	void OnRep_WasInteracted();
 
 public:	
 
@@ -43,12 +45,15 @@ public:
 	AShooterWorldActorBase();
 
 	UPROPERTY(EditDefaultsOnly, Category = Mesh)
-	UStaticMeshComponent* Mesh;
+	UStaticMeshComponent* StaticMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config)
-		TEnumAsByte<EShooterItemType::Type> ItemType;
+	TEnumAsByte<EShooterInteractableType::Type> InteractableType;
 
-	UPROPERTY(EditDefaultsOnly, Category = Mesh)
-	int32 CustomOutlineDepthValue;
+	
+
+	virtual void OnFocusBegin();
+	virtual void OnFocusEnd();
+	virtual FString GetInteractionText();
 	
 };

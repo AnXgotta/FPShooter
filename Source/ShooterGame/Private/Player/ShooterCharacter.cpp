@@ -1,10 +1,6 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
 #include "ShooterGame.h"
-#include "ShooterInteractableActorInterface.h"
-#include "ShooterItemPUPDInterface.h"
-#include "ShooterWorldActorBase.h"
-#include "ShooterWorldActor_Weapon.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterDamageType.h"
 #include "UI/ShooterHUD.h"
@@ -13,6 +9,8 @@
 #include "Animation/AnimInstance.h"
 #include "Sound/SoundNodeLocalPlayer.h"
 #include "AudioThread.h"
+
+#include "ShooterWorldActor_Weapon.h"
 
 static int32 NetVisualizeRelevancyTestPoints = 0;
 FAutoConsoleVariableRef CVarNetVisualizeRelevancyTestPoints(
@@ -1010,7 +1008,7 @@ void AShooterCharacter::OnNextWeapon()
 				if (NextWeapon) {
 					EquipWeapon(NextWeapon);
 				}
-			}			
+			}
 		}
 	}
 }
@@ -1160,9 +1158,9 @@ void AShooterCharacter::Tick(float DeltaSeconds)
 	const uint32 UniqueID = GetUniqueID();
 	FAudioThread::RunCommandOnAudioThread([UniqueID, bLocallyControlled]()
 	{
-	    USoundNodeLocalPlayer::GetLocallyControlledActorCache().Add(UniqueID, bLocallyControlled);
+		USoundNodeLocalPlayer::GetLocallyControlledActorCache().Add(UniqueID, bLocallyControlled);
 	});
-	
+
 	TArray<FVector> PointsToTest;
 	BuildPauseReplicationCheckPoints(PointsToTest);
 
@@ -1375,13 +1373,17 @@ void AShooterCharacter::OnInteract() {
 	if (IsLocallyControlled()) {
 		GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Interact")));
 		ServerOnInteract();
-	}	
+	}
 }
 
 bool AShooterCharacter::ServerOnInteract_Validate() {
 	return true;
 }
 
+void AShooterCharacter::ServerOnInteract_Implementation() {
+	GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Server Interact")));
+	ServerLineTraceForInteraction();
+}
 
 void AShooterCharacter::OnItemPickUp(FString ItemId) {
 	if (!InventoryManagerComponent) {
@@ -1398,10 +1400,7 @@ void AShooterCharacter::OnItemPutDown() {
 	}
 }
 
-void AShooterCharacter::ServerOnInteract_Implementation() {
-	GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Server Interact")));
-	ServerLineTraceForInteraction();
-}
+
 
 FVector AShooterCharacter::GetTraceStartLocation(const FVector& LookDir) const
 {
@@ -1418,7 +1417,7 @@ FVector AShooterCharacter::GetTraceStartLocation(const FVector& LookDir) const
 		// Adjust trace so there is nothing blocking the ray between the camera and the pawn, and calculate distance from adjusted start
 		OutStartTrace = OutStartTrace + LookDir * ((GetActorLocation() - OutStartTrace) | LookDir);
 	}
-	
+
 	return OutStartTrace;
 }
 
@@ -1459,16 +1458,19 @@ bool AShooterCharacter::LineTraceForInteraction() {
 
 		if (!CurrentInteractingActor) {
 			CurrentInteractingActor = Hit.GetActor();
-			if (CurrentInteractingActor->GetClass()->ImplementsInterface(UShooterInteractableActorInterface::StaticClass())) {
-				IShooterInteractableActorInterface::Execute_BeginOutlineFocus(CurrentInteractingActor);
-
+			// start focus
+			AShooterWorldActorBase* WorldActor = Cast <AShooterWorldActorBase>(CurrentInteractingActor);
+			if (WorldActor) {
+				WorldActor->OnFocusBegin();
 			}
 		}
 	}
 	else {
 		if (CurrentInteractingActor) {
-			if (CurrentInteractingActor->GetClass()->ImplementsInterface(UShooterInteractableActorInterface::StaticClass())) {
-				IShooterInteractableActorInterface::Execute_EndOutlineFocus(CurrentInteractingActor);
+			// end focus
+			AShooterWorldActorBase* WorldActor = Cast <AShooterWorldActorBase>(CurrentInteractingActor);
+			if (WorldActor) {
+				WorldActor->OnFocusEnd();
 			}
 			CurrentInteractingActor = nullptr;
 		}
@@ -1502,14 +1504,11 @@ void AShooterCharacter::ServerLineTraceForInteraction() {
 
 	if (Hit.GetActor()) {
 		HandleItemInteraction(Hit.GetActor());
-	}	
+	}
 }
 
 void AShooterCharacter::HandleInteractionUI(AActor* NewActor) {
-	AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(NewActor);
-	if (wActor) {
 
-	}
 }
 
 void AShooterCharacter::HandleItemInteraction(AActor* NewActor) {
@@ -1517,50 +1516,45 @@ void AShooterCharacter::HandleItemInteraction(AActor* NewActor) {
 	AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(NewActor);
 	if (wActor) {
 		// do inventory things first, then decide how to handle the item
-		switch (wActor->ItemType) {
-		case EShooterItemType::Weapon:
+		switch (wActor->InteractableType) {
+		case EShooterInteractableType::Weapon:
+		{
 			// do weapon stuff here - add to primary/secondary, swap, etc
-			if (NewActor->GetClass()->ImplementsInterface(UShooterItemPUPDInterface::StaticClass())) {
-				IShooterItemPUPDInterface::Execute_OnPickUp(NewActor, this);
+			AShooterWorldActor_Weapon* wWeapon = Cast<AShooterWorldActor_Weapon>(wActor);
+			if (wWeapon) {
+				OnPickupWeapon(wWeapon->GetWeaponData(), wWeapon->GetAttachmentNameIds());
 			}
 			break;
-		case EShooterItemType::Ammo:
-		case EShooterItemType::Consumable:
-		case EShooterItemType::WeaponAttachment:
+		}
+		case EShooterInteractableType::Ammo:
+		case EShooterInteractableType::Consumable:
+		case EShooterInteractableType::WeaponAttachment:
 			// these will go directly into the inventory
 			break;
-		case EShooterItemType::Action:
+		case EShooterInteractableType::Action:
 			// this is a simple interatable actor (e.g. A Door)
 			break;
 		}
 	}
 
-	//if (NewActor->GetClass()->ImplementsInterface(UShooterInteractableActorInterface::StaticClass())) {
-	//	IShooterInteractableActorInterface::Execute_OnActorInteracted(NewActor, this);
-	//}
-
-	
-
-
 }
 
 
-bool AShooterCharacter::OnPickupWeapon(FString ItemNameId, TArray<FText> WeaponAttachmentNames) {
-
-	FWeaponData NewWeaponData = InventoryManagerComponent->GetWeaponConfigInfo(ItemNameId);
+bool AShooterCharacter::OnPickupWeapon(FWeaponData& WeaponData, TArray<FText> WeaponAttachmentNames) {
 
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	AShooterWeapon* NewWeapon = GetWorld()->SpawnActor<AShooterWeapon>(NewWeaponData.SpawnClass, SpawnInfo);
+	AShooterWeapon* NewWeapon = GetWorld()->SpawnActor<AShooterWeapon>(WeaponData.SpawnClass, SpawnInfo);
 	if (!NewWeapon) {
 		GEngine->AddOnScreenDebugMessage(-1, 5.0, FColor::Green, FString(TEXT("New Weapon NULL")));
 		return false;
 	}
 
-	NewWeapon->SetWeaponConfig(NewWeaponData);
+	NewWeapon->SetWeaponConfig(WeaponData);
 
 	AddWeapon(NewWeapon);
-	
+	UE_LOG(LogTemp, Warning, TEXT("Weapon added"));
+
 	return true;
 
 }
@@ -1569,7 +1563,7 @@ bool AShooterCharacter::OnDropWeapon(FWeaponData& WeaponConfig, TArray<FText> We
 
 	//FActorSpawnParameters SpawnInfo;
 	//SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	//AShooterWorldActor_Weapon* NewWeapon = GetWorld()->SpawnActor<AShooterWorldActor_Weapon>(NewWeaponData.SpawnClass, SpawnInfo);
+	//AShooterWorldActor_Weapon* NewWeapon = GetWorld()->SpawnActor<AShooterWorldActor_Weapon>(WeaponConfig.SpawnClass, SpawnInfo);
 	//if (!NewWeapon) {
 	//	GEngine->AddOnScreenDebugMessage(-1, 5.0, FColor::Green, FString(TEXT("Dropped Weapon NULL")));
 	//	return false;

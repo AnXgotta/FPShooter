@@ -1,29 +1,24 @@
 #pragma once
 
+#include "CoreMinimal.h"
 #include "ShooterInventoryInterface.generated.h"
 
-UINTERFACE(BlueprintType)
+UINTERFACE(MinimalAPI)
 class UShooterInventoryInterface : public UInterface
 {
-	GENERATED_UINTERFACE_BODY()
+	GENERATED_BODY()
 };
 
-class IShooterInventoryInterface
+class SHOOTERGAME_API IShooterInventoryInterface
 {
 
-	GENERATED_IINTERFACE_BODY()
+	GENERATED_BODY()
 
 public:
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IInventory")
-		FShooterInventoryContainer GetContainerProperties();
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IInventory")
-		UShooterInventoryComponent* GetContainerInventory();
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IInventory")
-		TArray<APlayerState*> GetPlayersViewing();
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IInventory")
-		bool CanStoreItems();
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "IInventory")
-		bool ContainerLooted();
+		virtual FShooterInventoryContainer GetContainerProperties() = 0;
+		virtual UShooterInventoryComponent* GetContainerInventory() = 0;
+		virtual TArray<APlayerState*> GetPlayersViewing() = 0;
+		virtual bool CanStoreItems() = 0;
 
 };

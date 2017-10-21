@@ -13,18 +13,12 @@ class SHOOTERGAME_API UShooterInventoryManagerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-
-	AShooterCharacter* Pawn;
-
 	class UShooterInventoryComponent* InventoryComponent;
 	
 
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-
-	UPROPERTY()
-	class UShooterInventoryHelper* InventoryHelper;
 
 public:	
 
@@ -43,7 +37,7 @@ public:
 		bool bIsContainerOpen;
 
 	
-	//bool InitializeInventory(AShooterCharacter* NewPawn, float MaxWeight);
+	bool InitializeInventory(float MaxWeight);
 		
 	// do these need to be Client-Reliable??
 	void OpenInventory();
@@ -52,11 +46,6 @@ public:
 	int32 AddItemToInventory(FName NewItemId);
 	int32 AddItemToInventoryImp(FShooterInventoryItem NewItem);
 	bool RemoveItemFromInventory(FName ItemId, int32 Amount);
-
-
-	// Accessor/mutator
-	UFUNCTION()
-		FWeaponData GetWeaponConfigInfo(FString ItemNameId);
 
 private:
 

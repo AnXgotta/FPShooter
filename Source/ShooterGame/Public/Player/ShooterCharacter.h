@@ -502,7 +502,7 @@ private:
 
 public:
 	UFUNCTION()
-		bool OnPickupWeapon(FString ItemNameId, TArray<FText> WeaponAttachmentNames);
+		bool OnPickupWeapon(FWeaponData& WeaponData, TArray<FText> WeaponAttachmentNames);
 
 	UFUNCTION()
 		bool OnDropWeapon(FWeaponData& WeaponConfig, TArray<FText> WeaponAttachmentNames);

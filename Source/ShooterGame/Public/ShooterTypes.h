@@ -295,6 +295,10 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
 		FWeaponRecoil RecoilData;
 
+	/** attachment data */
+	UPROPERTY(EditDefaultsOnly, Category = WeaponStat)
+		TArray<FText> AttachmentNameIds;
+
 	/** defaults */
 	FWeaponData()
 	{
@@ -311,7 +315,7 @@ struct FWeaponData
 };
 
 UENUM(BlueprintType)
-namespace EShooterItemType
+namespace EShooterInteractableType
 {
 	enum Type
 	{
@@ -354,7 +358,7 @@ struct FShooterInventoryItem
 		FString Description;
 
 	UPROPERTY()
-		TEnumAsByte<EShooterItemType::Type> ItemType;
+		TEnumAsByte<EShooterInteractableType::Type> InteractableType;
 
 	UPROPERTY()
 		float Weight;
@@ -391,7 +395,7 @@ struct FInventorySlotInformation
 		FName Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
-		TEnumAsByte<EShooterItemType::Type> ItemType;
+		TEnumAsByte<EShooterInteractableType::Type> InteractableType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
 		int Amount;
@@ -419,7 +423,7 @@ struct FInventoryItemToolTip
 			FString Description;
 
 		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
-			TEnumAsByte<EShooterItemType::Type> ItemType;
+			TEnumAsByte<EShooterInteractableType::Type> InteractableType;
 
 		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
 			int Amount;

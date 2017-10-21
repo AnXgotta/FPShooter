@@ -1,16 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ShooterGame.h"
+
 #include "ShooterInventoryComponent.h"
-#include "ShooterInventoryHelper.h"
 #include "ShooterInventoryManagerComponent.h"
 
 
 // Sets default values for this component's properties
 UShooterInventoryManagerComponent::UShooterInventoryManagerComponent()
 {
-
-	InventoryHelper = NewObject<UShooterInventoryHelper>(UShooterInventoryHelper::StaticClass());
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	bReplicates = true;
@@ -24,9 +22,9 @@ void UShooterInventoryManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
+
 	// ...
-	
+
 }
 
 
@@ -38,25 +36,30 @@ void UShooterInventoryManagerComponent::BeginPlay()
 //	// ...
 //}
 //
-//bool UShooterInventoryManagerComponent::InitializeInventory(AShooterCharacter* NewPawn, float MaxWeight) {
-//	Pawn = NewPawn;
-//	InventoryComponent = Pawn->GetInventoryComponent();
-//	InventoryComponent->InventoryMaxWeight = MaxWeight;
-//	AShooterPlayerController* PC = Cast<AShooterPlayerController>(Pawn->GetController());
-//	if (PC) {
-//		
-//	}
-//	return Pawn;
-//}
+bool UShooterInventoryManagerComponent::InitializeInventory(float MaxWeight) {
+	if (GetOwner()) {
+		AShooterCharacter* Pawn = Cast<AShooterCharacter>(GetOwner());
+		if (Pawn) {
+			InventoryComponent = Pawn->GetInventoryComponent();
+			if (InventoryComponent) {
+				InventoryComponent->InventoryMaxWeight = MaxWeight;
+			}
+			else {
+				return false;
+			}
+		}
+	}
+	return true;
+}
 
 void UShooterInventoryManagerComponent::OpenInventory() {
 	UE_LOG(LogTemp, Warning, TEXT("InvenManager Open Inventory"));
-	
+
 }
 
 void UShooterInventoryManagerComponent::CloseInventory() {
 	UE_LOG(LogTemp, Warning, TEXT("InvenManager Close Inventory"));
-	
+
 }
 
 int UShooterInventoryManagerComponent::AddItemToInventory(FName NewItemId) {
@@ -180,18 +183,10 @@ int UShooterInventoryManagerComponent::RemoveItem(int ItemIndex, int Amount) {
 	if (Amount >= InventoryComponent->GetInventory()[ItemIndex].Amount) {
 		RemainingAmount = Amount - InventoryComponent->GetInventory()[ItemIndex].Amount;
 		InventoryComponent->GetInventory().RemoveAt(ItemIndex);
-	} else {
+	}
+	else {
 		RemainingAmount = 0;
 		InventoryComponent->GetInventory()[ItemIndex].Amount -= Amount;
 	}
 	return RemainingAmount;
-}
-
-
-
-// ACCESOR / MUTATOR
-
-FWeaponData UShooterInventoryManagerComponent::GetWeaponConfigInfo(FString ItemNameId) {
-	return InventoryHelper->GetWeaponInventoryInfo(ItemNameId);
-
 }
