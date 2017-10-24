@@ -15,9 +15,32 @@ class SHOOTERGAME_API UShooterInventorySlot : public UShooterWidgetBase
 {
 	GENERATED_BODY()
 
+
+	UPROPERTY(meta = (BindWidget))
+		class UImage* Icon;
+
+	UPROPERTY(meta = (BindWidget))
+		class UTextBlock* Amount;
+
+	UPROPERTY(meta = (BindWidget))
+		class UTextBlock* Name;
+
+	UPROPERTY(meta = (BindWidget))
+		class UBorder* ImageBorder;
+
 public:
-		UPROPERTY(BlueprintReadWrite, Category = "Config")
-		FInventorySlotInformation SlotInformation;
+
+	UFUNCTION()
+		void SetAmountText(FText AmountText);
+
+	UFUNCTION()
+		void SetNameText(FText NameText);
+
+	UFUNCTION()
+		void SetIcon(UTexture2D* IconTexture);
+
+	UFUNCTION()
+		void SetBorderColor(FLinearColor NewColor);
 
 		UPROPERTY(BlueprintReadWrite, Category = "Config")
 		bool bIsSlotHovered;

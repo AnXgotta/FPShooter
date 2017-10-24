@@ -16,3 +16,4 @@ void UShooterInteractWidget::SetInteractionKeyText(FText InteractionKeyText) {
 		InteractKey->SetText(InteractionKeyText);
 	}
 }
+

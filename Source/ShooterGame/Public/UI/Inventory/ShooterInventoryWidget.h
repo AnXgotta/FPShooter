@@ -35,4 +35,11 @@ class SHOOTERGAME_API UShooterInventoryWidget : public UShooterWidgetBase
 	UPROPERTY(meta = (BindWidget))
 	class USizeBox* Item2Box;
 
+public:
+
+	void ClearInventoryList();
+
+	void AddToInventoryList(class UShooterWidgetBase* NewItem);
+
+
 };

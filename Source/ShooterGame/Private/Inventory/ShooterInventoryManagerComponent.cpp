@@ -74,7 +74,7 @@ void UShooterInventoryManagerComponent::OpenInventory() {
 	}
 
 	if (PlayerHUD) {
-		PlayerHUD->ShowInventory(true);
+		PlayerHUD->ShowInventory(InventoryComponent->GetInventory());
 	}
 }
 
@@ -91,7 +91,7 @@ void UShooterInventoryManagerComponent::CloseInventory() {
 	}
 
 	if (PlayerHUD) {
-		PlayerHUD->ShowInventory(false);
+		PlayerHUD->HideInventory();
 	}
 }
 
@@ -104,6 +104,7 @@ int UShooterInventoryManagerComponent::AddItemToInventory(FName NewItemId, int32
 			NewItem = Game->Data_GetItemInventoryItem(NewItemId.ToString());
 		}
 	}
+	NewItem.Amount = Amount;
 
 	int32 RemainingItems = AddItemToInventoryImp(NewItem);
 
@@ -115,18 +116,18 @@ int UShooterInventoryManagerComponent::AddItemToInventoryImp(FShooterInventoryIt
 	int32 AmountNotAdded = 0;
 
 	if (!InventoryComponent) {
-		UE_LOG(LogTemp, Warning, TEXT("InventoryComponent is NULL"));
 		return NewItem.Amount;
 	}
 
 	// can all fit? how about some?
 	if (InventoryComponent->IsSpaceFor(NewItem.GetTotalWeight())) {
 		RemainingAmountThatCanFit = NewItem.Amount;
+		
 	}
 	else {
 		for (int i = NewItem.Amount; i >= 0; i--) {
 			if (InventoryComponent->IsSpaceFor(NewItem.Weight * i)) {
-				RemainingAmountThatCanFit = i;
+				RemainingAmountThatCanFit = i + 1;
 				break;
 			}
 		}
@@ -134,6 +135,7 @@ int UShooterInventoryManagerComponent::AddItemToInventoryImp(FShooterInventoryIt
 
 	// inventory can't fit any of this item
 	if (RemainingAmountThatCanFit <= 0) {
+		UE_LOG(LogTemp, Warning, TEXT("Item Added 2"));
 		return NewItem.Amount;
 	}
 
@@ -161,7 +163,10 @@ int UShooterInventoryManagerComponent::AddItemToInventoryImp(FShooterInventoryIt
 int UShooterInventoryManagerComponent::FindItemAndAddToStack(FName ItemId, int ItemAmount) {
 	int32 RemainingAmount = ItemAmount;
 
-	for (int i = 0; i < InventoryComponent->GetInventory().Num() || RemainingAmount == 0; i++) {
+	for (int i = 0; i < InventoryComponent->GetInventory().Num(); i++) {
+		if (RemainingAmount <= 0) {
+			break;
+		}
 		if (InventoryComponent->GetInventory()[i].ID == ItemId) {
 			RemainingAmount = AddItemToStack(i, RemainingAmount);
 		}
@@ -181,10 +186,12 @@ int UShooterInventoryManagerComponent::AddItemToStack(int32 ItemIndex, int ItemA
 		int32 FreeSpaceAmount = LItem.MaxStackable - LItem.Amount;
 		if (RemainingAmount <= FreeSpaceAmount) {
 			LItem.Amount += RemainingAmount;
+			InventoryComponent->SetInventoryItemAt(LItem, ItemIndex);
 			RemainingAmount = 0;
 		}
 		else {
 			LItem.Amount = LItem.MaxStackable;
+			InventoryComponent->SetInventoryItemAt(LItem, ItemIndex);
 			RemainingAmount -= FreeSpaceAmount;
 		}
 	}
@@ -193,6 +200,7 @@ int UShooterInventoryManagerComponent::AddItemToStack(int32 ItemIndex, int ItemA
 }
 
 void UShooterInventoryManagerComponent::AddItem(FShooterInventoryItem NewItem) {
+	UE_LOG(LogTemp, Warning, TEXT("Item Added!!!"));
 	InventoryComponent->SetInventoryItem(NewItem);
 }
 

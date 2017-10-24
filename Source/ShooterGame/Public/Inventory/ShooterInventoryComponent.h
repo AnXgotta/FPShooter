@@ -25,7 +25,9 @@ public:
 	// Sets default values for this component's properties
 	UShooterInventoryComponent();
 
+	UPROPERTY(Replicated)
 	float InventoryWeight;
+	UPROPERTY(Replicated)
 	float InventoryMaxWeight;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
@@ -36,6 +38,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 		bool SetInventoryItem(FShooterInventoryItem InventoryItem);
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+		bool SetInventoryItemAt(FShooterInventoryItem InventoryItem, int32 Index);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 		bool ClearInventoryItem(FName& DesiredItemID);

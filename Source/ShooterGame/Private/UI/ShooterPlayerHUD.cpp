@@ -1,9 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ShooterGame.h"
+#include "ShooterWidgetBase.h"
 #include "ShooterCrosshairWidget.h"
 #include "ShooterInteractWidget.h"
 #include "ShooterInventoryWidget.h"
+#include "ShooterInventorySlot.h"
 #include "ShooterPlayerHUD.h"
 
 
@@ -15,51 +17,105 @@ AShooterPlayerHUD::AShooterPlayerHUD() {
 
 	ConstructorHelpers::FClassFinder<UShooterInventoryWidget> InventoryWidgetClass(TEXT("/Game/UI/Inventory/Inventory"));
 
+	ConstructorHelpers::FClassFinder<UShooterInventorySlot> InventorySlotWidgetClassRef(TEXT("/Game/UI/Inventory/Inventory_Slot"));
 
-	if (InteractionWidgetClass.Class) {
-		UWorld* World = GetWorld();
-		if (World) {
+	InventorySlotWidgetClass = InventorySlotWidgetClassRef.Class;
+
+
+	UWorld* World = GetWorld();
+	if (World) {
+
+		if (InteractionWidgetClass.Class) {
 			InteractionWidget = CreateWidget<UShooterInteractWidget>(World, InteractionWidgetClass.Class);
 			if (InteractionWidget) {
 				InteractionWidget->AddToViewport();
 				InteractionWidget->SetVisibility(ESlateVisibility::Hidden);
 			}
+		}
 
+		if (CrosshairWidgetClass.Class) {
 			CrosshairWidget = CreateWidget<UShooterCrosshairWidget>(World, CrosshairWidgetClass.Class);
 			if (CrosshairWidget) {
 				CrosshairWidget->AddToViewport();
 				CrosshairWidget->SetVisibility(ESlateVisibility::Visible);
 			}
+		}
 
+		if (InventoryWidgetClass.Class) {
 			InventoryWidget = CreateWidget<UShooterInventoryWidget>(World, InventoryWidgetClass.Class);
 			if (InventoryWidget) {
 				InventoryWidget->AddToViewport();
 				InventoryWidget->SetVisibility(ESlateVisibility::Hidden);
 			}
 		}
+
 	}
+
 }
 
 
-void AShooterPlayerHUD::ShowInteractionWidget(FText InteractionKeyText, FText InteractionText) {
+void AShooterPlayerHUD::ShowInteractionWidget(FText InteractionKeyText, FText InteractionText)
+{
 
 	if (InteractionText.IsEmpty()) return;
 
-	if (InteractionWidget) {
+	if (InteractionWidget)
+	{
 		InteractionWidget->SetInteractionText(InteractionText);
 		InteractionWidget->SetInteractionKeyText(InteractionKeyText);
 		InteractionWidget->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
-void AShooterPlayerHUD::HideInteractionWidget() {
-	if (InteractionWidget) {
+void AShooterPlayerHUD::HideInteractionWidget()
+{
+	if (InteractionWidget)
+	{
 		InteractionWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
-void AShooterPlayerHUD::ShowInventory(bool bShow) {
-	if (InventoryWidget) {
-		InventoryWidget->SetVisibility(bShow ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+void AShooterPlayerHUD::ShowInventory(TArray<FShooterInventoryItem> InventoryReference)
+{
+	if (InventoryWidget)
+	{
+		InventoryWidget->ClearInventoryList();
+		UWorld* World = GetWorld();
+		if (World) {
+			for (int i = 0; i < InventoryReference.Num(); i++) {
+				UShooterInventorySlot* NewWidget = CreateWidget<UShooterInventorySlot>(World, InventorySlotWidgetClass);
+				NewWidget->SetIcon(InventoryReference[i].Icon);
+				NewWidget->SetNameText(FText::FromName(InventoryReference[i].Name));
+				NewWidget->SetAmountText(FText::FromString(FString::FromInt(InventoryReference[i].Amount)));
+
+				switch (InventoryReference[i].InteractableType) {
+				case EShooterInteractableType::Consumable:
+				{
+					NewWidget->SetBorderColor(FLinearColor::Blue);
+				}
+				break;
+				case EShooterInteractableType::Ammo:
+				{
+					NewWidget->SetBorderColor(FLinearColor::Green);
+				}
+				case EShooterInteractableType::WeaponAttachment:
+				{
+					NewWidget->SetBorderColor(FLinearColor::Yellow);
+				}
+				break;
+				}
+				NewWidget->SetVisibility(ESlateVisibility::Visible);
+				InventoryWidget->AddToInventoryList(NewWidget);
+			}
+
+			InventoryWidget->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+}
+
+void AShooterPlayerHUD::HideInventory() {
+	if (InventoryWidget)
+	{
+		InventoryWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
 }

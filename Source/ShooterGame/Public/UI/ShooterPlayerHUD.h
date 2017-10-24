@@ -17,6 +17,7 @@ class SHOOTERGAME_API AShooterPlayerHUD : public AHUD
 	class UShooterCrosshairWidget* CrosshairWidget;
 	class UShooterInteractWidget* InteractionWidget;
 	class UShooterInventoryWidget* InventoryWidget;
+	TSubclassOf<class UShooterInventorySlot> InventorySlotWidgetClass;
 
 
 public:		
@@ -30,6 +31,9 @@ public:
 	void HideInteractionWidget();
 
 	UFUNCTION()
-		void ShowInventory(bool bShow);
+		void ShowInventory(TArray<FShooterInventoryItem> InventoryReference);
+
+	UFUNCTION()
+		void HideInventory();
 
 };

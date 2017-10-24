@@ -46,7 +46,14 @@ FShooterInventoryItem UShooterInventoryComponent::GetInventoryItem(FName& Desire
 }
 
 bool UShooterInventoryComponent::SetInventoryItem(FShooterInventoryItem InventoryItem) {
+	InventoryWeight += InventoryItem.GetTotalWeight();
 	return Inventory.Add(InventoryItem) > -1;
+}
+
+bool UShooterInventoryComponent::SetInventoryItemAt(FShooterInventoryItem InventoryItem, int32 Index) {
+	InventoryWeight += InventoryItem.GetTotalWeight() - Inventory[Index].GetTotalWeight();
+	Inventory.RemoveAt(Index);
+	return Inventory.Insert(InventoryItem, Index) > -1;
 }
 
 bool UShooterInventoryComponent::ClearInventoryItem(FName& DesiredItemID) {
@@ -64,6 +71,7 @@ bool UShooterInventoryComponent::ClearInventoryItem(FName& DesiredItemID) {
 		return false;
 	}
 
+	InventoryWeight -= Inventory[DesiredItemIndex].GetTotalWeight();
 	Inventory.RemoveAt(DesiredItemIndex);
 
 	return true;
@@ -74,6 +82,8 @@ void UShooterInventoryComponent::ModifyInventoryMaxSize(float Amount) {
 }
 
 bool UShooterInventoryComponent::IsSpaceFor(float Weight) {
+
+	UE_LOG(LogTemp, Warning, TEXT("SpaceFor: %f <= %f - %f"), Weight, InventoryMaxWeight, InventoryWeight);
 	return Weight <= (InventoryMaxWeight - InventoryWeight);
 }
 
@@ -83,4 +93,6 @@ void UShooterInventoryComponent::GetLifetimeReplicatedProps(TArray< FLifetimePro
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(UShooterInventoryComponent, Inventory, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UShooterInventoryComponent, InventoryWeight, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UShooterInventoryComponent, InventoryMaxWeight, COND_OwnerOnly);
 }
