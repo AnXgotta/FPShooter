@@ -18,6 +18,12 @@ class SHOOTERGAME_API AShooterGame_BR : public AShooterGameMode
 		UPROPERTY()
 		UDataTable* WeaponInfoDT;
 
+	UPROPERTY()
+		UDataTable* ConsumableDT;
+
+	UPROPERTY()
+		UDataTable* ConsumableUIDT;
+
 	
 	
 public:
@@ -26,5 +32,8 @@ public:
 
 	UFUNCTION()
 		FWeaponData Data_GetWeaponDefaultData(FString WeaponId);
+
+	UFUNCTION()
+		FShooterInventoryItem Data_GetItemInventoryItem(FString ItemId);
 
 };

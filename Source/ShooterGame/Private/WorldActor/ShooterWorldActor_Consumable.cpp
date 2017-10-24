@@ -8,5 +8,10 @@
 AShooterWorldActor_Consumable::AShooterWorldActor_Consumable() {
 	InteractableType = EShooterInteractableType::Consumable;
 	CustomOutlineDepthValue = 4;
+	Amount = 1;
 }
 
+void AShooterWorldActor_Consumable::OnWasInteracted() {
+	Super::OnWasInteracted();
+	Destroy();
+}

@@ -25,6 +25,10 @@ class SHOOTERGAME_API AShooterWorldActor_Weapon : public AShooterWorldActorBase
 public:
 
 	AShooterWorldActor_Weapon();
+
+	UFUNCTION()
+	virtual void OnWasInteracted() override;
+
 	FORCEINLINE FWeaponData& GetWeaponData() { return WeaponConfig; }
 	FORCEINLINE TArray<FText> GetAttachmentNameIds() { return AttachmentNameIds; }
 

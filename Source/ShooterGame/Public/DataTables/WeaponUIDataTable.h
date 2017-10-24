@@ -7,8 +7,10 @@ struct FWeaponUIDataTable : public FTableRowBase
 	GENERATED_USTRUCT_BODY()
 
 public:
-
 	
+	UPROPERTY(EditAnywhere, Category = "Consumable UI")
+		FText ItemId;
+
 	UPROPERTY(EditAnywhere, Category = WeaponUI)
 		UTexture2D* Icon;
 
@@ -17,9 +19,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = WeaponUI)
 		FText Description;
-
-	UPROPERTY(EditAnywhere, Category = WeaponUI)
-		FText Action;
 
 	FWeaponUIDataTable() {}
 

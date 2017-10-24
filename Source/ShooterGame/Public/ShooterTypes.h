@@ -18,11 +18,11 @@ namespace EShooterCrosshairDirection
 {
 	enum Type
 	{
-		Left=0,
-		Right=1,
-		Top=2,
-		Bottom=3,
-		Center=4
+		Left = 0,
+		Right = 1,
+		Top = 2,
+		Bottom = 3,
+		Center = 4
 	};
 }
 
@@ -30,14 +30,14 @@ namespace EShooterHudPosition
 {
 	enum Type
 	{
-		Left=0,
-		FrontLeft=1,
-		Front=2,
-		FrontRight=3,
-		Right=4,
-		BackRight=5,
-		Back=6,
-		BackLeft=7,
+		Left = 0,
+		FrontLeft = 1,
+		Front = 2,
+		FrontRight = 3,
+		Right = 4,
+		BackRight = 5,
+		Back = 6,
+		BackLeft = 7,
 	};
 }
 
@@ -69,6 +69,30 @@ namespace EShooterDialogType
 	};
 }
 
+UENUM(BlueprintType)
+namespace EShooterInteractableType
+{
+	enum Type
+	{
+		Weapon,
+		WeaponAttachment,
+		Consumable,
+		Ammo,
+		Action
+	};
+}
+
+UENUM(BlueprintType)
+namespace EShooterConsumableType
+{
+	enum Type
+	{
+		Health,
+		Stim,
+		Rage
+	};
+}
+
 #define SHOOTER_SURFACE_Default		SurfaceType_Default
 #define SHOOTER_SURFACE_Concrete	SurfaceType1
 #define SHOOTER_SURFACE_Dirt		SurfaceType2
@@ -84,17 +108,17 @@ struct FDecalData
 {
 	GENERATED_USTRUCT_BODY()
 
-	/** material */
-	UPROPERTY(EditDefaultsOnly, Category=Decal)
-	UMaterial* DecalMaterial;
+		/** material */
+		UPROPERTY(EditDefaultsOnly, Category = Decal)
+		UMaterial* DecalMaterial;
 
 	/** quad size (width & height) */
-	UPROPERTY(EditDefaultsOnly, Category=Decal)
-	float DecalSize;
+	UPROPERTY(EditDefaultsOnly, Category = Decal)
+		float DecalSize;
 
 	/** lifespan */
-	UPROPERTY(EditDefaultsOnly, Category=Decal)
-	float LifeSpan;
+	UPROPERTY(EditDefaultsOnly, Category = Decal)
+		float LifeSpan;
 
 	/** defaults */
 	FDecalData()
@@ -110,47 +134,47 @@ struct FTakeHitInfo
 {
 	GENERATED_USTRUCT_BODY()
 
-	/** The amount of damage actually applied */
-	UPROPERTY()
-	float ActualDamage;
+		/** The amount of damage actually applied */
+		UPROPERTY()
+		float ActualDamage;
 
 	/** The damage type we were hit with. */
 	UPROPERTY()
-	UClass* DamageTypeClass;
+		UClass* DamageTypeClass;
 
 	/** Who hit us */
 	UPROPERTY()
-	TWeakObjectPtr<class AShooterCharacter> PawnInstigator;
+		TWeakObjectPtr<class AShooterCharacter> PawnInstigator;
 
 	/** Who actually caused the damage */
 	UPROPERTY()
-	TWeakObjectPtr<class AActor> DamageCauser;
+		TWeakObjectPtr<class AActor> DamageCauser;
 
 	/** Specifies which DamageEvent below describes the damage received. */
 	UPROPERTY()
-	int32 DamageEventClassID;
+		int32 DamageEventClassID;
 
 	/** Rather this was a kill */
 	UPROPERTY()
-	uint32 bKilled:1;
+		uint32 bKilled : 1;
 
 private:
 
 	/** A rolling counter used to ensure the struct is dirty and will replicate. */
 	UPROPERTY()
-	uint8 EnsureReplicationByte;
+		uint8 EnsureReplicationByte;
 
 	/** Describes general damage. */
 	UPROPERTY()
-	FDamageEvent GeneralDamageEvent;
+		FDamageEvent GeneralDamageEvent;
 
 	/** Describes point damage, if that is what was received. */
 	UPROPERTY()
-	FPointDamageEvent PointDamageEvent;
+		FPointDamageEvent PointDamageEvent;
 
 	/** Describes radial damage, if that is what was received. */
 	UPROPERTY()
-	FRadialDamageEvent RadialDamageEvent;
+		FRadialDamageEvent RadialDamageEvent;
 
 public:
 	FTakeHitInfo();
@@ -262,6 +286,9 @@ struct FWeaponData
 		UPROPERTY(EditDefaultsOnly, Category = SpawnClass)
 		TSubclassOf<class AShooterWeapon> SpawnClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = SpawnClass)
+		TSubclassOf<class AShooterWorldActor_Weapon> WorldSpawnClass;
+
 	/** max ammo */
 	UPROPERTY(EditDefaultsOnly, Category = Ammo)
 		int32 MaxAmmo;
@@ -314,29 +341,38 @@ struct FWeaponData
 	}
 };
 
-UENUM(BlueprintType)
-namespace EShooterInteractableType
+USTRUCT(BlueprintType)
+struct FConsumableData
 {
-	enum Type
-	{
-		Weapon,
-		WeaponAttachment,
-		Consumable,
-		Ammo,
-		Action
-	};
-}
+	GENERATED_USTRUCT_BODY()
 
-UENUM(BlueprintType)
-namespace EShooterConsumableType
-{
-	enum Type
-	{
-		Health,
-		Stim,
-		Rage
-	};
-}
+		UPROPERTY(EditDefaultsOnly, Category = "SpawnClass")
+		TSubclassOf<class AShooterWorldActor_Consumable> WorldSpawnClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		FName ItemId;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		TEnumAsByte<EShooterInteractableType::Type> InteractableType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		TEnumAsByte<EShooterConsumableType::Type> ConsumableType;
+
+	UPROPERTY(EditAnywhere, Category = "Defaults")
+		float EffectValue;
+
+	UPROPERTY(EditAnywhere, Category = "Defaults")
+		float EffectDuration;
+
+	UPROPERTY(EditAnywhere, Category = "Defaults")
+		float TimeToUse;
+
+
+public:
+	FConsumableData() {
+
+	}
+};
 
 
 
@@ -359,6 +395,9 @@ struct FShooterInventoryItem
 
 	UPROPERTY()
 		TEnumAsByte<EShooterInteractableType::Type> InteractableType;
+
+	UPROPERTY()
+		TEnumAsByte<EShooterConsumableType::Type> ConsumableType;
 
 	UPROPERTY()
 		float Weight;
@@ -416,17 +455,17 @@ struct FInventoryItemToolTip
 		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
 		UTexture2D* Icon;
 
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
 		FName Name;
 
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
-			FString Description;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		FString Description;
 
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
-			TEnumAsByte<EShooterInteractableType::Type> InteractableType;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		TEnumAsByte<EShooterInteractableType::Type> InteractableType;
 
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
-			int Amount;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Defaults")
+		int Amount;
 
 
 public:

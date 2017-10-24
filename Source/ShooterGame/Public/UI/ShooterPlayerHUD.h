@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "ShooterInventoryWidget.h"
 #include "ShooterPlayerHUD.generated.h"
 
 /**
@@ -14,8 +13,23 @@ UCLASS()
 class SHOOTERGAME_API AShooterPlayerHUD : public AHUD
 {
 	GENERATED_BODY()
-			
+
+	class UShooterCrosshairWidget* CrosshairWidget;
+	class UShooterInteractWidget* InteractionWidget;
+	class UShooterInventoryWidget* InventoryWidget;
 
 
+public:		
+
+	AShooterPlayerHUD();
+
+	UFUNCTION()
+	void ShowInteractionWidget(FText InteractionKeyText, FText InteractionText);
+
+	UFUNCTION()
+	void HideInteractionWidget();
+
+	UFUNCTION()
+		void ShowInventory(bool bShow);
 
 };

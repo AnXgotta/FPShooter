@@ -9,6 +9,9 @@ UShooterInventoryComponent::UShooterInventoryComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
+
+	Inventory.Init(FShooterInventoryItem(), 0);
+
 	PrimaryComponentTick.bCanEverTick = false;
 
 	InventoryWeight = 0.0f;
@@ -19,6 +22,11 @@ void UShooterInventoryComponent::InitializeInventory(float NewInventoryMaxWeight
 	InventoryMaxWeight = NewInventoryMaxWeight;
 	InventoryWeight = 0;
 	Inventory.Empty();	
+}
+
+void UShooterInventoryComponent::OnRep_Inventory()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Inventory Replicated"));
 }
 
 FShooterInventoryItem UShooterInventoryComponent::GetInventoryItem(FName& DesiredItemID) {
@@ -70,6 +78,9 @@ bool UShooterInventoryComponent::IsSpaceFor(float Weight) {
 }
 
 
-TArray<FShooterInventoryItem> UShooterInventoryComponent::GetInventory() { 
-	return Inventory;
+void UShooterInventoryComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(UShooterInventoryComponent, Inventory, COND_OwnerOnly);
 }

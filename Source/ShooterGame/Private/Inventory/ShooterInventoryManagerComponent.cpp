@@ -2,7 +2,10 @@
 
 #include "ShooterGame.h"
 
+#include "ShooterPlayerHUD.h"
 #include "ShooterInventoryComponent.h"
+#include "ShooterGame_BR.h"
+
 #include "ShooterInventoryManagerComponent.h"
 
 
@@ -23,8 +26,6 @@ void UShooterInventoryManagerComponent::BeginPlay()
 	Super::BeginPlay();
 
 
-	// ...
-
 }
 
 
@@ -36,41 +37,87 @@ void UShooterInventoryManagerComponent::BeginPlay()
 //	// ...
 //}
 //
-bool UShooterInventoryManagerComponent::InitializeInventory(float MaxWeight) {
-	if (GetOwner()) {
-		AShooterCharacter* Pawn = Cast<AShooterCharacter>(GetOwner());
-		if (Pawn) {
-			InventoryComponent = Pawn->GetInventoryComponent();
-			if (InventoryComponent) {
-				InventoryComponent->InventoryMaxWeight = MaxWeight;
-			}
-			else {
-				return false;
-			}
-		}
+bool UShooterInventoryManagerComponent::InitializeInventory(UShooterInventoryComponent* NewInventoryComponent, float MaxWeight) {
+
+	InventoryComponent = NewInventoryComponent;
+	if (InventoryComponent) {
+		InventoryComponent->InventoryMaxWeight = MaxWeight;
 	}
+	else {
+		return false;
+	}
+
 	return true;
 }
 
-void UShooterInventoryManagerComponent::OpenInventory() {
-	UE_LOG(LogTemp, Warning, TEXT("InvenManager Open Inventory"));
+void UShooterInventoryManagerComponent::ToggleInventory() {
+	if (bIsInventoryOpen) {
+		CloseInventory();
+	}
+	else {
+		OpenInventory();
+	}
+	bIsInventoryOpen = !bIsInventoryOpen;
+}
 
+void UShooterInventoryManagerComponent::OpenInventory() {
+	AShooterPlayerHUD* PlayerHUD = nullptr;
+	if (GetOwner()) {
+		AShooterCharacter* Pawn = Cast<AShooterCharacter>(GetOwner());
+		if (Pawn) {
+			AShooterPlayerController* PC = Cast<AShooterPlayerController>(Pawn->GetController());
+			if (PC) {
+				PlayerHUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+			}
+
+		}
+	}
+
+	if (PlayerHUD) {
+		PlayerHUD->ShowInventory(true);
+	}
 }
 
 void UShooterInventoryManagerComponent::CloseInventory() {
-	UE_LOG(LogTemp, Warning, TEXT("InvenManager Close Inventory"));
+	AShooterPlayerHUD* PlayerHUD = nullptr;
+	if (GetOwner()) {
+		AShooterCharacter* Pawn = Cast<AShooterCharacter>(GetOwner());
+		if (Pawn) {
+			AShooterPlayerController* PC = Cast<AShooterPlayerController>(Pawn->GetController());
+			if (PC) {
+				PlayerHUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+			}
+		}
+	}
 
+	if (PlayerHUD) {
+		PlayerHUD->ShowInventory(false);
+	}
 }
 
-int UShooterInventoryManagerComponent::AddItemToInventory(FName NewItemId) {
+int UShooterInventoryManagerComponent::AddItemToInventory(FName NewItemId, int32 Amount) {
+	FShooterInventoryItem NewItem;
+	UWorld* World = GetWorld();
+	if (World) {
+		AShooterGame_BR* Game = Cast<AShooterGame_BR>(World->GetAuthGameMode());
+		if (Game) {
+			NewItem = Game->Data_GetItemInventoryItem(NewItemId.ToString());
+		}
+	}
 
+	int32 RemainingItems = AddItemToInventoryImp(NewItem);
 
-	return 0;
+	return RemainingItems;
 }
 
 int UShooterInventoryManagerComponent::AddItemToInventoryImp(FShooterInventoryItem NewItem) {
 	int32 RemainingAmountThatCanFit = NewItem.Amount;
 	int32 AmountNotAdded = 0;
+
+	if (!InventoryComponent) {
+		UE_LOG(LogTemp, Warning, TEXT("InventoryComponent is NULL"));
+		return NewItem.Amount;
+	}
 
 	// can all fit? how about some?
 	if (InventoryComponent->IsSpaceFor(NewItem.GetTotalWeight())) {

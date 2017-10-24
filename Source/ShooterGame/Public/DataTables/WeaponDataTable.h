@@ -13,6 +13,9 @@ struct FWeaponDataTable : public FTableRowBase
 		UPROPERTY(EditDefaultsOnly, Category = SpawnClass)
 		TSubclassOf<class AShooterWeapon> SpawnClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = SpawnClass)
+		TSubclassOf<class AShooterWorldActor_Weapon> WorldSpawnClass;
+
 	/** max ammo */
 	UPROPERTY(EditDefaultsOnly, Category = Ammo)
 		int32 MaxAmmo;

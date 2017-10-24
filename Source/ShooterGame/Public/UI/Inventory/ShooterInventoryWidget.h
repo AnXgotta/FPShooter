@@ -16,4 +16,23 @@ class SHOOTERGAME_API UShooterInventoryWidget : public UShooterWidgetBase
 {
 	GENERATED_BODY()
 
+
+	UPROPERTY(meta = (BindWidget))
+	class UVerticalBox* ProximityList;
+
+	UPROPERTY(meta = (BindWidget))
+	class UVerticalBox* InventoryList;
+
+	UPROPERTY(meta = (BindWidget))
+	class USizeBox* PrimaryBox;
+
+	UPROPERTY(meta = (BindWidget))
+	class USizeBox* SecondaryBox;
+
+	UPROPERTY(meta = (BindWidget))
+	class USizeBox* Item1Box;
+
+	UPROPERTY(meta = (BindWidget))
+	class USizeBox* Item2Box;
+
 };

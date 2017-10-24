@@ -26,3 +26,8 @@ void AShooterWorldActor_Weapon::BeginPlay() {
 		}
 	}
 }
+
+void AShooterWorldActor_Weapon::OnWasInteracted() {
+	Super::OnWasInteracted();
+	Destroy();
+}

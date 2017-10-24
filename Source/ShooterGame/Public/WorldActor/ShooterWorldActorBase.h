@@ -20,13 +20,13 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	/** weapon data */
+	/** item lookup name*/
 	UPROPERTY(EditDefaultsOnly, Category = Config)
 	FString ItemNameId;
 
-	/** weapon data */
+	/** item interaction text (blank = none) */
 	UPROPERTY(EditDefaultsOnly, Category = Config)
-	FString InteractionText;
+		FText InteractionText;
 
 	UPROPERTY(ReplicatedUsing = OnRep_WasInteracted)
 	bool bWasInteracted;
@@ -54,6 +54,8 @@ public:
 
 	virtual void OnFocusBegin();
 	virtual void OnFocusEnd();
-	virtual FString GetInteractionText();
+	virtual FText GetInteractionText();
+
+	virtual FString GetItemNameId();
 	
 };

@@ -9,16 +9,19 @@
 #include "ShooterInventoryComponent.generated.h"
 
 
-UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(Blueprintable, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class SHOOTERGAME_API UShooterInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-	TArray<FShooterInventoryItem> Inventory;
-	
+		UPROPERTY(ReplicatedUsing = OnRep_Inventory)
+		TArray<FShooterInventoryItem> Inventory;
+
+	UFUNCTION()
+		void OnRep_Inventory();
 
 
-public:	
+public:
 	// Sets default values for this component's properties
 	UShooterInventoryComponent();
 
@@ -26,16 +29,16 @@ public:
 	float InventoryMaxWeight;
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void InitializeInventory(float NewInventoryMaxWeight);
+		void InitializeInventory(float NewInventoryMaxWeight);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	FShooterInventoryItem GetInventoryItem(FName& DesiredItemID);
+		FShooterInventoryItem GetInventoryItem(FName& DesiredItemID);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	bool SetInventoryItem(FShooterInventoryItem InventoryItem);
+		bool SetInventoryItem(FShooterInventoryItem InventoryItem);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	bool ClearInventoryItem(FName& DesiredItemID);
+		bool ClearInventoryItem(FName& DesiredItemID);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 		void ModifyInventoryMaxSize(float Amount);
@@ -44,11 +47,26 @@ public:
 		bool IsSpaceFor(float Weight);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	TArray<FShooterInventoryItem> GetInventory();
+		FORCEINLINE TArray<FShooterInventoryItem> GetInventory()
+	{
+		return Inventory;
+	}
+
+	//UFUNCTION(BlueprintCallable, Category = "Inventory")
+	//	FORCEINLINE FShooterInventoryItem* GetItemAt(int32 Index)
+	//{
+	//	return &(Inventory[Index]);
+	//}
+
+	//UFUNCTION(BlueprintCallable, Category = "Inventory")
+	//	FORCEINLINE void RemoveItemAt(int32 Index)
+	//{
+	//	Inventory.RemoveAt(Index);
+	//}
 
 
-	
 
 
-	
+
+
 };

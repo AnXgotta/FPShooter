@@ -493,6 +493,7 @@ private:
 		void ServerOnInteract();
 
 
+	float AreaTraceForInteracitonTimer;
 	float LineTraceForInteractionTimer;
 
 	FVector GetTraceStartLocation(const FVector& LookDir) const;
@@ -507,6 +508,9 @@ public:
 	UFUNCTION()
 		bool OnDropWeapon(FWeaponData& WeaponConfig, TArray<FText> WeaponAttachmentNames);
 
+	UFUNCTION()
+		int32 OnPickupConsumable(FString ItemNameId, int32 Amount);
+
 	UPROPERTY(BlueprintReadWrite, Category = "Interaction")
 		AActor* CurrentInteractingActor;
 
@@ -515,6 +519,9 @@ public:
 
 	UFUNCTION()
 		void ServerLineTraceForInteraction();
+
+	UFUNCTION(BlueprintCallable, Category = "Interactions")
+		bool AreaTraceForInteraction();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
 		void OnInteractableActorFocused();

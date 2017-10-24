@@ -3,7 +3,7 @@
 #include "ShooterGame.h"
 #include "Weapons/ShooterWeapon.h"
 #include "Weapons/ShooterDamageType.h"
-#include "UI/ShooterHUD.h"
+#include "ShooterPlayerHUD.h"
 #include "Online/ShooterPlayerState.h"
 #include "Animation/AnimMontage.h"
 #include "Animation/AnimInstance.h"
@@ -11,6 +11,7 @@
 #include "AudioThread.h"
 
 #include "ShooterWorldActor_Weapon.h"
+#include "ShooterWorldActor_Consumable.h"
 
 static int32 NetVisualizeRelevancyTestPoints = 0;
 FAutoConsoleVariableRef CVarNetVisualizeRelevancyTestPoints(
@@ -58,6 +59,7 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Ignore);
 
 	InventoryComponent = ObjectInitializer.CreateDefaultSubobject<UShooterInventoryComponent>(this, TEXT("InventoryComponent"));
+	InventoryComponent->SetIsReplicated(true);
 	InventoryManagerComponent = ObjectInitializer.CreateDefaultSubobject<UShooterInventoryManagerComponent>(this, TEXT("InventoryManagerComponent"));
 
 
@@ -71,7 +73,8 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
-	LineTraceForInteractionTimer = 0.0f;
+	AreaTraceForInteracitonTimer = 0.1f;
+	LineTraceForInteractionTimer = 0.1f;
 
 	InitialMaxInventoryWeight = 100.0f;
 
@@ -86,6 +89,8 @@ void AShooterCharacter::PostInitializeComponents()
 		Health = GetMaxHealth();
 		InitializeEmptyInventory();
 	}
+
+	
 
 	// set initial mesh visibility (3rd person view)
 	UpdatePawnMeshes();
@@ -1149,6 +1154,17 @@ void AShooterCharacter::Tick(float DeltaSeconds)
 		}
 		else {
 			LineTraceForInteraction();
+			LineTraceForInteractionTimer = 0.1f;
+		}
+
+		if (InventoryManagerComponent && InventoryManagerComponent->bIsInventoryOpen) {
+			if (AreaTraceForInteracitonTimer > 0) {
+				AreaTraceForInteracitonTimer -= DeltaSeconds;
+			}
+			else {
+				AreaTraceForInteraction();
+				AreaTraceForInteracitonTimer = 0.1f;
+			}
 		}
 
 	}
@@ -1357,11 +1373,16 @@ void AShooterCharacter::BuildPauseReplicationCheckPoints(TArray<FVector>& Releva
 // INVENTORY
 
 void AShooterCharacter::InitializeInventoryComponents() {
-	//InventoryManagerComponent->InitializeInventory(this, InitialMaxInventoryWeight);
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->InitializeInventory(InventoryComponent, 100.0f);
+	}
 }
 
 void AShooterCharacter::OnToggleInventory() {
-
+	if (InventoryManagerComponent) {
+		InventoryManagerComponent->ToggleInventory();
+	}
 }
 
 // INTERACTION
@@ -1436,6 +1457,31 @@ FVector AShooterCharacter::GetLookDirection() const
 	return FinalAim;
 }
 
+bool AShooterCharacter::AreaTraceForInteraction() {
+	
+	// server doesn't need to do this until a hit is registered by the client
+	if (!IsLocallyControlled()) {
+		return false;
+	}
+
+
+	// Perform trace to retrieve hit info
+
+	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(InteractionTrace), true);
+
+	TArray<FHitResult> Hits;
+	bool bHasHit = GetWorld()->SweepMultiByChannel(Hits, GetActorLocation(), GetActorLocation(), FQuat::MakeFromEuler(FVector::ZeroVector), COLLISION_INTERACTABLE, FCollisionShape::MakeCapsule(200.f, GetDefaultHalfHeight()), TraceParams);
+
+	if (Hits.Num() > 0) {
+		for (int i = 0; i < Hits.Num(); i++) {
+			UE_LOG(LogTemp, Warning, TEXT("Capsule got: %s"), *Hits[i].Actor->GetName());
+		}
+
+	}
+	
+	return true;
+}
+
 bool AShooterCharacter::LineTraceForInteraction() {
 
 	// server doesn't need to do this until a hit is registered by the client
@@ -1462,6 +1508,13 @@ bool AShooterCharacter::LineTraceForInteraction() {
 			AShooterWorldActorBase* WorldActor = Cast <AShooterWorldActorBase>(CurrentInteractingActor);
 			if (WorldActor) {
 				WorldActor->OnFocusBegin();
+				APlayerController* PC = Cast<APlayerController>(GetController());
+				if (PC) {
+					AShooterPlayerHUD* HUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+					if (HUD) {
+						HUD->ShowInteractionWidget(FText::FromString(FString(TEXT("F"))), WorldActor->GetInteractionText());
+					}
+				}
 			}
 		}
 	}
@@ -1471,6 +1524,13 @@ bool AShooterCharacter::LineTraceForInteraction() {
 			AShooterWorldActorBase* WorldActor = Cast <AShooterWorldActorBase>(CurrentInteractingActor);
 			if (WorldActor) {
 				WorldActor->OnFocusEnd();
+			}
+			APlayerController* PC = Cast<APlayerController>(GetController());
+			if (PC) {
+				AShooterPlayerHUD* HUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+				if (HUD) {
+					HUD->HideInteractionWidget();
+				}
 			}
 			CurrentInteractingActor = nullptr;
 		}
@@ -1482,20 +1542,11 @@ bool AShooterCharacter::LineTraceForInteraction() {
 
 void AShooterCharacter::ServerLineTraceForInteraction() {
 
-	GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Server Trace 0")));
 	FVector LookDirection = GetLookDirection();
 
 	FVector StartTrace = GetTraceStartLocation(LookDirection);
 	FVector EndTrace = StartTrace + (LookDirection * 300.0f);
 
-	DrawDebugLine(
-		GetWorld(),
-		StartTrace,
-		EndTrace,
-		FColor(255, 0, 0),
-		true, 10.0f, 0,
-		1
-	);
 	// Perform trace to retrieve hit info
 	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(InteractionTrace), true);
 
@@ -1511,23 +1562,46 @@ void AShooterCharacter::HandleInteractionUI(AActor* NewActor) {
 
 }
 
-void AShooterCharacter::HandleItemInteraction(AActor* NewActor) {
+void AShooterCharacter::HandleItemInteraction(AActor* NewActor) 
+{
 
 	AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(NewActor);
-	if (wActor) {
+	if (wActor) 
+	{
 		// do inventory things first, then decide how to handle the item
-		switch (wActor->InteractableType) {
+		switch (wActor->InteractableType) 
+		{
 		case EShooterInteractableType::Weapon:
 		{
 			// do weapon stuff here - add to primary/secondary, swap, etc
 			AShooterWorldActor_Weapon* wWeapon = Cast<AShooterWorldActor_Weapon>(wActor);
-			if (wWeapon) {
-				OnPickupWeapon(wWeapon->GetWeaponData(), wWeapon->GetAttachmentNameIds());
+			if (wWeapon) 
+			{
+				if (OnPickupWeapon(wWeapon->GetWeaponData(), wWeapon->GetAttachmentNameIds())) 
+				{
+					wWeapon->OnWasInteracted();
+				}
 			}
 			break;
 		}
 		case EShooterInteractableType::Ammo:
 		case EShooterInteractableType::Consumable:
+		{
+			// pickup as many items as will fit and leave the ones that wont
+			AShooterWorldActor_Consumable* wConsumable = Cast<AShooterWorldActor_Consumable>(wActor);
+			if (wConsumable)
+			{
+				int32 NumberOfItemsRemaining = OnPickupConsumable(wConsumable->GetItemNameId(), wConsumable->GetAmount());
+				if (NumberOfItemsRemaining <= 0)
+				{
+					wConsumable->OnWasInteracted();
+				}
+				else {
+
+				}
+			}
+
+		}
 		case EShooterInteractableType::WeaponAttachment:
 			// these will go directly into the inventory
 			break;
@@ -1546,15 +1620,13 @@ bool AShooterCharacter::OnPickupWeapon(FWeaponData& WeaponData, TArray<FText> We
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	AShooterWeapon* NewWeapon = GetWorld()->SpawnActor<AShooterWeapon>(WeaponData.SpawnClass, SpawnInfo);
 	if (!NewWeapon) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0, FColor::Green, FString(TEXT("New Weapon NULL")));
 		return false;
 	}
 
 	NewWeapon->SetWeaponConfig(WeaponData);
 
 	AddWeapon(NewWeapon);
-	UE_LOG(LogTemp, Warning, TEXT("Weapon added"));
-
+	
 	return true;
 
 }
@@ -1571,4 +1643,13 @@ bool AShooterCharacter::OnDropWeapon(FWeaponData& WeaponConfig, TArray<FText> We
 
 	return true;
 
+}
+
+int32 AShooterCharacter::OnPickupConsumable(FString ItemNameId, int32 Amount) {
+	int32 RemainingItems = 0;
+	if (InventoryManagerComponent) {
+		RemainingItems = InventoryManagerComponent->AddItemToInventory(FName(*ItemNameId), Amount);
+	}
+
+	return RemainingItems;
 }

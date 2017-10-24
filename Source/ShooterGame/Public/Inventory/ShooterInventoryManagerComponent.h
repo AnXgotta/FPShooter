@@ -14,7 +14,11 @@ class SHOOTERGAME_API UShooterInventoryManagerComponent : public UActorComponent
 	GENERATED_BODY()
 
 	class UShooterInventoryComponent* InventoryComponent;
-	
+
+
+	// do these need to be Client-Reliable??
+	void OpenInventory();
+	void CloseInventory();
 
 protected:
 	// Called when the game starts
@@ -37,13 +41,13 @@ public:
 		bool bIsContainerOpen;
 
 	
-	bool InitializeInventory(float MaxWeight);
-		
-	// do these need to be Client-Reliable??
-	void OpenInventory();
-	void CloseInventory();
+	bool InitializeInventory(class UShooterInventoryComponent* NewInventoryComponent, float MaxWeight);
 
-	int32 AddItemToInventory(FName NewItemId);
+	void ToggleInventory();
+
+	void UpdateProximityActors(TArray<FShooterInventoryItem> PoximityItems);
+
+	int32 AddItemToInventory(FName NewItemId, int32 Amount);
 	int32 AddItemToInventoryImp(FShooterInventoryItem NewItem);
 	bool RemoveItemFromInventory(FName ItemId, int32 Amount);
 
@@ -57,5 +61,6 @@ private:
 	
 	bool CheckForDesiredItemAmount(FName ItemId, int32 DesiredAmount);
 	int RemoveItem(int ItemIndex, int Amount);
+
 
 };

@@ -22,32 +22,44 @@ AShooterWorldActorBase::AShooterWorldActorBase()
 }
 
 // Called when the game starts or when spawned
-void AShooterWorldActorBase::BeginPlay(){
+void AShooterWorldActorBase::BeginPlay()
+{
 	Super::BeginPlay();
 	StaticMesh->SetCustomDepthStencilValue(CustomOutlineDepthValue);
 }
 
 
-void AShooterWorldActorBase::OnFocusBegin() {
+void AShooterWorldActorBase::OnFocusBegin()
+{
 	StaticMesh->SetRenderCustomDepth(true);
 }
 
-void AShooterWorldActorBase::OnFocusEnd() {
+void AShooterWorldActorBase::OnFocusEnd()
+{
 	StaticMesh->SetRenderCustomDepth(false);
 }
 
-FString AShooterWorldActorBase::GetInteractionText() {
+FText AShooterWorldActorBase::GetInteractionText()
+{
 	return InteractionText;
 }
 
-void AShooterWorldActorBase::OnRep_WasInteracted() {
+FString AShooterWorldActorBase::GetItemNameId()
+{
+	return ItemNameId;
+}
+
+void AShooterWorldActorBase::OnRep_WasInteracted() 
+{
 	// replicated to clients to do whatever shit... sounds or destroy self or whatever
 	OnWasInteracted();
 }
 
-void AShooterWorldActorBase::OnWasInteracted() {
+void AShooterWorldActorBase::OnWasInteracted() 
+{
 	// play sounds or effects on clients and destroy or whatever
 	// PLAY SOUNDS AND HANDLE OTHER SHIT ON OVERRIDED METHOD
+	bWasInteracted = true;
 }
 
 void AShooterWorldActorBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const

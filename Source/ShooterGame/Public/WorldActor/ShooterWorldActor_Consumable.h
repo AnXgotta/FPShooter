@@ -13,16 +13,24 @@ UCLASS()
 class SHOOTERGAME_API AShooterWorldActor_Consumable : public AShooterWorldActorBase
 {
 	GENERATED_BODY()
-	
-		/** weapon data */
-		UPROPERTY(EditDefaultsOnly, Category = Config)
-		FText ConsumableNameId;
+
+		int32 Amount;
 	
 public:
 
 	AShooterWorldActor_Consumable();
 
-	FORCEINLINE FText GetConsumableNameId() { return ConsumableNameId; }
+	UFUNCTION()
+	virtual void OnWasInteracted() override;
 
+	FORCEINLINE int32 GetAmount() 
+	{
+		return Amount;
+	}
+
+	FORCEINLINE void SetAmount(int32 NewAmount)
+	{
+		Amount = NewAmount;
+	}
 	
 };
