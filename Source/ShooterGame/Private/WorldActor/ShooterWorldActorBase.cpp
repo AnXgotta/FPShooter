@@ -19,6 +19,7 @@ AShooterWorldActorBase::AShooterWorldActorBase()
 
 	bWasInteracted = false;
 	CustomOutlineDepthValue = 1;
+	Amount = 1;
 }
 
 // Called when the game starts or when spawned

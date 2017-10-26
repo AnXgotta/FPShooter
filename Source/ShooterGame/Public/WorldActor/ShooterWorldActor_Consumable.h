@@ -13,8 +13,6 @@ UCLASS()
 class SHOOTERGAME_API AShooterWorldActor_Consumable : public AShooterWorldActorBase
 {
 	GENERATED_BODY()
-
-		int32 Amount;
 	
 public:
 
@@ -22,11 +20,6 @@ public:
 
 	UFUNCTION()
 	virtual void OnWasInteracted() override;
-
-	FORCEINLINE int32 GetAmount() 
-	{
-		return Amount;
-	}
 
 	FORCEINLINE void SetAmount(int32 NewAmount)
 	{

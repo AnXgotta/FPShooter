@@ -1,6 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ShooterGame.h"
+#include "ShooterPlayerHUD.h"
+#include "ShooterPlayerController.h"
+#include "ShooterCharacter.h"
 #include "ShooterInventoryComponent.h"
 
 
@@ -11,6 +14,7 @@ UShooterInventoryComponent::UShooterInventoryComponent()
 	// off to improve performance if you don't need them.
 
 	Inventory.Init(FShooterInventoryItem(), 0);
+	Proximity.Init(FShooterInventoryItem(), 0);
 
 	PrimaryComponentTick.bCanEverTick = false;
 
@@ -24,9 +28,63 @@ void UShooterInventoryComponent::InitializeInventory(float NewInventoryMaxWeight
 	Inventory.Empty();	
 }
 
+void UShooterInventoryComponent::AddItemsToProximity(TArray<FShooterInventoryItem> NewItems) {
+	Proximity.Empty();
+	NewItems.Sort([](const FShooterInventoryItem& ip1, const FShooterInventoryItem& ip2) {
+		if (ip1.Name == ip2.Name) {
+			return ip1.Amount > ip2.Amount;
+		}
+		else {
+			return ip1.Name < ip2.Name;
+		}
+		
+	});
+	Proximity = TArray<FShooterInventoryItem>(NewItems);
+}
+
+void UShooterInventoryComponent::ClearProximity() {
+	if (Proximity.Num() > 0)
+	{
+		Proximity.Empty();
+	}	
+}
+
 void UShooterInventoryComponent::OnRep_Inventory()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Inventory Replicated"));
+	AShooterPlayerHUD* PlayerHUD = nullptr;
+	if (GetOwner()) {
+		AShooterCharacter* Pawn = Cast<AShooterCharacter>(GetOwner());
+		if (Pawn) {
+			AShooterPlayerController* PC = Cast<AShooterPlayerController>(Pawn->GetController());
+			if (PC) {
+				PlayerHUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+			}
+		}
+	}
+
+	if (PlayerHUD) {
+		PlayerHUD->UpdateInventoryNoShow(Inventory);
+	}
+}
+
+void UShooterInventoryComponent::OnRep_Proximity()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Proximity Replicated"));
+	AShooterPlayerHUD* PlayerHUD = nullptr;
+	if (GetOwner()) {
+		AShooterCharacter* Pawn = Cast<AShooterCharacter>(GetOwner());
+		if (Pawn) {
+			AShooterPlayerController* PC = Cast<AShooterPlayerController>(Pawn->GetController());
+			if (PC) {
+				PlayerHUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+			}
+		}
+	}
+
+	if (PlayerHUD) {
+		PlayerHUD->ShowProximity(Proximity);
+	}
+	
 }
 
 FShooterInventoryItem UShooterInventoryComponent::GetInventoryItem(FName& DesiredItemID) {
@@ -47,7 +105,16 @@ FShooterInventoryItem UShooterInventoryComponent::GetInventoryItem(FName& Desire
 
 bool UShooterInventoryComponent::SetInventoryItem(FShooterInventoryItem InventoryItem) {
 	InventoryWeight += InventoryItem.GetTotalWeight();
-	return Inventory.Add(InventoryItem) > -1;
+	Inventory.Add(InventoryItem);
+	Inventory.Sort([](const FShooterInventoryItem& ip1, const FShooterInventoryItem& ip2) {
+		if (ip1.Name == ip2.Name) {
+			return ip1.Amount > ip2.Amount;
+		}
+		else {
+			return ip1.Name < ip2.Name;
+		}
+	});
+	return true;
 }
 
 bool UShooterInventoryComponent::SetInventoryItemAt(FShooterInventoryItem InventoryItem, int32 Index) {
@@ -93,6 +160,7 @@ void UShooterInventoryComponent::GetLifetimeReplicatedProps(TArray< FLifetimePro
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(UShooterInventoryComponent, Inventory, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(UShooterInventoryComponent, Proximity, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UShooterInventoryComponent, InventoryWeight, COND_OwnerOnly);
 	DOREPLIFETIME_CONDITION(UShooterInventoryComponent, InventoryMaxWeight, COND_OwnerOnly);
 }

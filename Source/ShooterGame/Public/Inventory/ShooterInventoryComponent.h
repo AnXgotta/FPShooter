@@ -17,8 +17,14 @@ class SHOOTERGAME_API UShooterInventoryComponent : public UActorComponent
 		UPROPERTY(ReplicatedUsing = OnRep_Inventory)
 		TArray<FShooterInventoryItem> Inventory;
 
+	UPROPERTY(ReplicatedUsing = OnRep_Proximity)
+		TArray<FShooterInventoryItem> Proximity;
+
 	UFUNCTION()
 		void OnRep_Inventory();
+
+	UFUNCTION()
+		void OnRep_Proximity();
 
 
 public:
@@ -29,6 +35,12 @@ public:
 	float InventoryWeight;
 	UPROPERTY(Replicated)
 	float InventoryMaxWeight;
+
+	UFUNCTION()
+		void AddItemsToProximity(TArray<FShooterInventoryItem> NewItems);
+
+	UFUNCTION()
+		void ClearProximity();
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 		void InitializeInventory(float NewInventoryMaxWeight);
@@ -55,6 +67,12 @@ public:
 		FORCEINLINE TArray<FShooterInventoryItem> GetInventory()
 	{
 		return Inventory;
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+		FORCEINLINE TArray<FShooterInventoryItem> GetProximity()
+	{
+		return Proximity;
 	}
 
 	//UFUNCTION(BlueprintCallable, Category = "Inventory")

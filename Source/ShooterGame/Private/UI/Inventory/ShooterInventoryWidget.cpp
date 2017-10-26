@@ -17,3 +17,15 @@ void UShooterInventoryWidget::AddToInventoryList(UShooterWidgetBase* NewWidget) 
 		InventoryList->AddChildToVerticalBox(NewWidget);
 	}
 }
+
+void UShooterInventoryWidget::ClearProximityList() {
+	if (ProximityList) {
+		ProximityList->ClearChildren();
+	}
+}
+
+void UShooterInventoryWidget::AddToProximityList(UShooterWidgetBase* NewWidget) {
+	if (ProximityList) {
+		ProximityList->AddChildToVerticalBox(NewWidget);
+	}
+}

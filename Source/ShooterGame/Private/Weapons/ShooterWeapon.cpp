@@ -785,7 +785,7 @@ void AShooterWeapon::SimulateWeaponFire()
 		}
 		if (FireForceFeedback != NULL)
 		{
-			PC->ClientPlayForceFeedback(FireForceFeedback, false, "Weapon");
+			//PC->ClientPlayForceFeedback(FireForceFeedback, false, "Weapon");
 		}
 	}
 }

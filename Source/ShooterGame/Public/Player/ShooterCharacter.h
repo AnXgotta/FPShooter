@@ -492,8 +492,13 @@ private:
 	UFUNCTION(Server, Reliable, WithValidation)
 		void ServerOnInteract();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerOnProximityTrace(bool DoTrace);
 
-	float AreaTraceForInteracitonTimer;
+
+	bool bDoProximityTrace = false;
+
+	float ProximityTraceForInteracitonTimer;
 	float LineTraceForInteractionTimer;
 
 	FVector GetTraceStartLocation(const FVector& LookDir) const;
@@ -521,7 +526,7 @@ public:
 		void ServerLineTraceForInteraction();
 
 	UFUNCTION(BlueprintCallable, Category = "Interactions")
-		bool AreaTraceForInteraction();
+		bool ServerProximityTraceForInteraction();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Interaction")
 		void OnInteractableActorFocused();

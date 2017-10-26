@@ -26,14 +26,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Defaults")
 		float TimeToUse;
-	
-	UPROPERTY(EditAnywhere, Category = "Defaults")
-		bool bIsStackable;
-
-	UPROPERTY(EditAnywhere, Category = "Defaults")
-		int32 MaxStackable;
-
-	
 
 	FConsumableDataTable() {}
 

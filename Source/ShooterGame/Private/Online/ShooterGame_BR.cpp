@@ -2,6 +2,7 @@
 
 #include "ShooterGame.h"
 #include "WeaponDataTable.h"
+#include "WeaponUIDataTable.h"
 #include "ConsumableDataTable.h"
 #include "ConsumableUIDataTable.h"
 #include "ShooterGame_BR.h"
@@ -9,29 +10,11 @@
 
 AShooterGame_BR::AShooterGame_BR() {
 
-	ConstructorHelpers::FObjectFinder<UDataTable> WeaponInfoTable(TEXT("/Game/DataTables/WeaponInfo_DataTable"));
-	ConstructorHelpers::FObjectFinder<UDataTable> ConsumableInfoTable(TEXT("/Game/DataTables/ConsumableInfo_DataTable"));
-	ConstructorHelpers::FObjectFinder<UDataTable> ConsumableUIInfoTable(TEXT("/Game/DataTables/ConsumableUI_DataTable"));
-
-	if (WeaponInfoTable.Object != NULL)
-	{
-		WeaponInfoDT = WeaponInfoTable.Object;
-	}
-
-	if (ConsumableInfoTable.Object != NULL)
-	{
-		ConsumableDT = ConsumableInfoTable.Object;
-	}
-
-	if (ConsumableUIInfoTable.Object != NULL)
-	{
-		ConsumableUIDT = ConsumableUIInfoTable.Object;
-	}
-
 }
 
 
 FWeaponData AShooterGame_BR::Data_GetWeaponDefaultData(FString WeaponId) {
+
 	if (WeaponInfoDT == nullptr) {
 		return FWeaponData();
 	}
@@ -73,6 +56,32 @@ FWeaponData AShooterGame_BR::Data_GetWeaponDefaultData(FString WeaponId) {
 	return WeapData;
 }
 
+FShooterInventoryItem AShooterGame_BR::Data_GetWeaponInventoryItem(FString ItemId) {
+
+	FShooterInventoryItem NewItem;
+
+	if (WeaponUIDT == nullptr) {
+		return NewItem;
+	}
+
+	const FWeaponUIDataTable* Item = WeaponUIDT->FindRow<FWeaponUIDataTable>(FName(*ItemId), FString(TEXT("")));
+
+	if (Item == nullptr) {
+		return NewItem;
+	}
+
+	NewItem.Icon = Item->Icon;
+	NewItem.ID = *(Item->ItemId.ToString());
+	NewItem.Name = *(Item->Title.ToString());
+	NewItem.Description = Item->Description.ToString();
+	NewItem.Weight = Item->Weight;
+	NewItem.bIsStackable = Item->bIsStackable;
+	NewItem.MaxStackable = Item->MaxStackable;
+
+	NewItem.InteractableType = EShooterInteractableType::Weapon;
+
+	return NewItem;
+}
 
 FShooterInventoryItem AShooterGame_BR::Data_GetItemInventoryItem(FString ItemId) {
 	
@@ -94,6 +103,8 @@ FShooterInventoryItem AShooterGame_BR::Data_GetItemInventoryItem(FString ItemId)
 	NewItem.Name = *(Item->Title.ToString());
 	NewItem.Description = Item->Description.ToString();
 	NewItem.Weight = Item->Weight;
+	NewItem.bIsStackable = Item->bIsStackable;
+	NewItem.MaxStackable = Item->MaxStackable;
 
 	const FConsumableDataTable* ItemInfo = ConsumableDT->FindRow<FConsumableDataTable>(FName(*ItemId), FString(TEXT("")));
 
@@ -101,9 +112,8 @@ FShooterInventoryItem AShooterGame_BR::Data_GetItemInventoryItem(FString ItemId)
 		return NewItem;
 	}
 
+	NewItem.InteractableType = EShooterInteractableType::Consumable;
 	NewItem.ConsumableType = ItemInfo->ConsumableType;
-	NewItem.bIsStackable = ItemInfo->bIsStackable;
-	NewItem.MaxStackable = ItemInfo->MaxStackable;
 
 	return NewItem;
 }

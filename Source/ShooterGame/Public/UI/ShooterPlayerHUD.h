@@ -31,9 +31,18 @@ public:
 	void HideInteractionWidget();
 
 	UFUNCTION()
+		void ShowProximity(TArray<FShooterInventoryItem> ProximityReference);
+
+	UFUNCTION()
 		void ShowInventory(TArray<FShooterInventoryItem> InventoryReference);
 
 	UFUNCTION()
+		void UpdateInventoryNoShow(TArray<FShooterInventoryItem> InventoryReference);
+
+	UFUNCTION()
 		void HideInventory();
+
+	UFUNCTION()
+		class UShooterInventoryWidget* GetInventoryWidget();
 
 };

@@ -8,17 +8,26 @@ struct FWeaponUIDataTable : public FTableRowBase
 
 public:
 	
-	UPROPERTY(EditAnywhere, Category = "Consumable UI")
+	UPROPERTY(EditAnywhere, Category = "Weapon UI")
 		FText ItemId;
 
-	UPROPERTY(EditAnywhere, Category = WeaponUI)
+	UPROPERTY(EditAnywhere, Category = "Weapon UI")
 		UTexture2D* Icon;
 
-	UPROPERTY(EditAnywhere, Category = WeaponUI)
+	UPROPERTY(EditAnywhere, Category = "Weapon UI")
 		FText Title;
 
-	UPROPERTY(EditAnywhere, Category = WeaponUI)
+	UPROPERTY(EditAnywhere, Category = "Weapon UI")
 		FText Description;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon UI")
+		float Weight;
+	
+	UPROPERTY(EditAnywhere, Category = "Defaults")
+		bool bIsStackable;
+
+	UPROPERTY(EditAnywhere, Category = "Defaults")
+		int32 MaxStackable;
 
 	FWeaponUIDataTable() {}
 

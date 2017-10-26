@@ -41,5 +41,10 @@ public:
 
 	void AddToInventoryList(class UShooterWidgetBase* NewItem);
 
+	void ClearProximityList();
+
+	void AddToProximityList(class UShooterWidgetBase* NewItem);
+
+
 
 };

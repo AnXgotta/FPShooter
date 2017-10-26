@@ -6,6 +6,8 @@
 #include "ShooterInventoryComponent.h"
 #include "ShooterGame_BR.h"
 
+#include "ShooterInventoryWidget.h"
+
 #include "ShooterInventoryManagerComponent.h"
 
 
@@ -61,37 +63,83 @@ void UShooterInventoryManagerComponent::ToggleInventory() {
 }
 
 void UShooterInventoryManagerComponent::OpenInventory() {
-	AShooterPlayerHUD* PlayerHUD = nullptr;
 	if (GetOwner()) {
 		AShooterCharacter* Pawn = Cast<AShooterCharacter>(GetOwner());
 		if (Pawn) {
 			AShooterPlayerController* PC = Cast<AShooterPlayerController>(Pawn->GetController());
-			if (PC) {
-				PlayerHUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+			if (PC) {				
+				AShooterPlayerHUD* PlayerHUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+				if (PlayerHUD) {
+					PlayerHUD->ShowInventory(InventoryComponent->GetInventory());
+					FInputModeGameAndUI InputModeData;
+					InputModeData.SetWidgetToFocus(PlayerHUD->GetInventoryWidget()->TakeWidget());
+					PC->SetInputMode(InputModeData);
+					PC->bShowMouseCursor = true;
+				}
+				
 			}
-
 		}
 	}
 
-	if (PlayerHUD) {
-		PlayerHUD->ShowInventory(InventoryComponent->GetInventory());
-	}
+	
 }
 
 void UShooterInventoryManagerComponent::CloseInventory() {
-	AShooterPlayerHUD* PlayerHUD = nullptr;
 	if (GetOwner()) {
 		AShooterCharacter* Pawn = Cast<AShooterCharacter>(GetOwner());
 		if (Pawn) {
 			AShooterPlayerController* PC = Cast<AShooterPlayerController>(Pawn->GetController());
 			if (PC) {
-				PlayerHUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+				AShooterPlayerHUD* PlayerHUD = Cast<AShooterPlayerHUD>(PC->GetHUD());
+				if (PlayerHUD) {
+					PlayerHUD->HideInventory();
+					FInputModeGameOnly InputModeData;
+					PC->SetInputMode(InputModeData);
+					PC->bShowMouseCursor = false;
+				}
 			}
 		}
 	}
 
-	if (PlayerHUD) {
-		PlayerHUD->HideInventory();
+	if (InventoryComponent)
+	{
+		InventoryComponent->ClearProximity();
+	}
+
+}
+
+void UShooterInventoryManagerComponent::AddItemsToProximity(TArray<FName> NewItemIds, TArray<TEnumAsByte<EShooterInteractableType::Type>> ItemTypes, TArray<int32> Amounts) {
+	TArray<FShooterInventoryItem> NewItems;
+	NewItems.Init(FShooterInventoryItem(), 0);
+
+	UWorld* World = GetWorld();
+	if (World) {
+		for (int i = 0; i < NewItemIds.Num(); i++) {
+			FShooterInventoryItem tItem;
+
+			AShooterGame_BR* Game = Cast<AShooterGame_BR>(World->GetAuthGameMode());
+			if (Game) {
+				if (ItemTypes[i] == EShooterInteractableType::Consumable) {
+					tItem = Game->Data_GetItemInventoryItem(NewItemIds[i].ToString());
+				}
+				else if (ItemTypes[i] == EShooterInteractableType::Weapon) {
+					tItem = Game->Data_GetWeaponInventoryItem(NewItemIds[i].ToString());
+				}
+			}
+			tItem.Amount = Amounts[i];
+			NewItems.Add(tItem);
+		}
+	}	
+
+	if (InventoryComponent)
+	{
+		InventoryComponent->AddItemsToProximity(NewItems);
+	}	
+}
+
+void UShooterInventoryManagerComponent::ClearProximity() {
+	if (InventoryComponent) {
+		InventoryComponent->ClearProximity();
 	}
 }
 
@@ -122,7 +170,6 @@ int UShooterInventoryManagerComponent::AddItemToInventoryImp(FShooterInventoryIt
 	// can all fit? how about some?
 	if (InventoryComponent->IsSpaceFor(NewItem.GetTotalWeight())) {
 		RemainingAmountThatCanFit = NewItem.Amount;
-		
 	}
 	else {
 		for (int i = NewItem.Amount; i >= 0; i--) {
@@ -199,9 +246,24 @@ int UShooterInventoryManagerComponent::AddItemToStack(int32 ItemIndex, int ItemA
 	return RemainingAmount;
 }
 
-void UShooterInventoryManagerComponent::AddItem(FShooterInventoryItem NewItem) {
+void UShooterInventoryManagerComponent::AddItem(FShooterInventoryItem NewItem) 
+{
 	UE_LOG(LogTemp, Warning, TEXT("Item Added!!!"));
-	InventoryComponent->SetInventoryItem(NewItem);
+
+	int32 AmountRemaining = NewItem.Amount;
+	while (AmountRemaining > 0) {
+		FShooterInventoryItem tItem = NewItem;
+		if (AmountRemaining > NewItem.MaxStackable) {
+			tItem.Amount = NewItem.MaxStackable;
+			AmountRemaining -= NewItem.MaxStackable;
+		}
+		else {
+			tItem.Amount = AmountRemaining;
+			AmountRemaining -= AmountRemaining;
+		}			
+		InventoryComponent->SetInventoryItem(tItem);
+	}	
+	
 }
 
 bool UShooterInventoryManagerComponent::RemoveItemFromInventory(FName ItemId, int Amount) {

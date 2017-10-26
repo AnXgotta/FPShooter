@@ -73,7 +73,7 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
-	AreaTraceForInteracitonTimer = 0.1f;
+	ProximityTraceForInteracitonTimer = 0.25f;
 	LineTraceForInteractionTimer = 0.1f;
 
 	InitialMaxInventoryWeight = 100.0f;
@@ -368,7 +368,7 @@ void AShooterCharacter::OnDeath(float KillingDamage, struct FDamageEvent const& 
 			UShooterDamageType *DamageType = Cast<UShooterDamageType>(DamageEvent.DamageTypeClass->GetDefaultObject());
 			if (DamageType && DamageType->KilledForceFeedback)
 			{
-				PC->ClientPlayForceFeedback(DamageType->KilledForceFeedback, false, "Damage");
+				//PC->ClientPlayForceFeedback(DamageType->KilledForceFeedback, false, "Damage");
 			}
 		}
 	}
@@ -445,7 +445,7 @@ void AShooterCharacter::PlayHit(float DamageTaken, struct FDamageEvent const& Da
 			UShooterDamageType *DamageType = Cast<UShooterDamageType>(DamageEvent.DamageTypeClass->GetDefaultObject());
 			if (DamageType && DamageType->HitForceFeedback)
 			{
-				PC->ClientPlayForceFeedback(DamageType->HitForceFeedback, false, "Damage");
+				//PC->ClientPlayForceFeedback(DamageType->HitForceFeedback, false, "Damage");
 			}
 		}
 	}
@@ -720,6 +720,9 @@ void AShooterCharacter::SetCurrentWeapon(AShooterWeapon* NewWeapon, AShooterWeap
 
 void AShooterCharacter::StartWeaponFire()
 {
+	AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	if (MyPC && MyPC->IsGameInputAllowed()) return;
+
 	if (!bWantsToFire)
 	{
 		bWantsToFire = true;
@@ -754,6 +757,9 @@ bool AShooterCharacter::CanReload() const
 
 void AShooterCharacter::SetTargeting(bool bNewTargeting)
 {
+	AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
+	if (MyPC && MyPC->IsGameInputAllowed()) return;
+
 	bIsTargeting = bNewTargeting;
 
 	if (TargetingSound)
@@ -1157,13 +1163,13 @@ void AShooterCharacter::Tick(float DeltaSeconds)
 			LineTraceForInteractionTimer = 0.1f;
 		}
 
-		if (InventoryManagerComponent && InventoryManagerComponent->bIsInventoryOpen) {
-			if (AreaTraceForInteracitonTimer > 0) {
-				AreaTraceForInteracitonTimer -= DeltaSeconds;
+		if (bDoProximityTrace) {
+			if (ProximityTraceForInteracitonTimer > 0) {
+				ProximityTraceForInteracitonTimer -= DeltaSeconds;
 			}
 			else {
-				AreaTraceForInteraction();
-				AreaTraceForInteracitonTimer = 0.1f;
+				ServerProximityTraceForInteraction();
+				ProximityTraceForInteracitonTimer = 0.25f;
 			}
 		}
 
@@ -1380,8 +1386,9 @@ void AShooterCharacter::InitializeInventoryComponents() {
 }
 
 void AShooterCharacter::OnToggleInventory() {
-	if (InventoryManagerComponent) {
-		InventoryManagerComponent->ToggleInventory();
+	if (IsLocallyControlled() && InventoryManagerComponent) {
+		InventoryManagerComponent->ToggleInventory();		
+		ServerOnProximityTrace(InventoryManagerComponent->bIsInventoryOpen);
 	}
 }
 
@@ -1392,7 +1399,6 @@ void AShooterCharacter::OnInteract() {
 		return;
 	}
 	if (IsLocallyControlled()) {
-		GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Interact")));
 		ServerOnInteract();
 	}
 }
@@ -1402,7 +1408,6 @@ bool AShooterCharacter::ServerOnInteract_Validate() {
 }
 
 void AShooterCharacter::ServerOnInteract_Implementation() {
-	GEngine->AddOnScreenDebugMessage(-1, 3.0, FColor::Green, FString(TEXT("Server Interact")));
 	ServerLineTraceForInteraction();
 }
 
@@ -1457,26 +1462,42 @@ FVector AShooterCharacter::GetLookDirection() const
 	return FinalAim;
 }
 
-bool AShooterCharacter::AreaTraceForInteraction() {
+
+bool AShooterCharacter::ServerOnProximityTrace_Validate(bool DoTrace) {
+	return true;
+}
+
+void AShooterCharacter::ServerOnProximityTrace_Implementation(bool DoTrace) {
+	UE_LOG(LogTemp, Warning, TEXT("Server DoTrace = %s"), (DoTrace ? *FString("TRUE") : *FString("FALSE")));
+	bDoProximityTrace = DoTrace;
+}
+
+bool AShooterCharacter::ServerProximityTraceForInteraction() {
 	
-	// server doesn't need to do this until a hit is registered by the client
-	if (!IsLocallyControlled()) {
-		return false;
-	}
-
-
 	// Perform trace to retrieve hit info
-
+	UE_LOG(LogTemp, Warning, TEXT("Proximity Trace"));
 	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(InteractionTrace), true);
 
 	TArray<FHitResult> Hits;
 	bool bHasHit = GetWorld()->SweepMultiByChannel(Hits, GetActorLocation(), GetActorLocation(), FQuat::MakeFromEuler(FVector::ZeroVector), COLLISION_INTERACTABLE, FCollisionShape::MakeCapsule(200.f, GetDefaultHalfHeight()), TraceParams);
 
+	TArray<FName> ItemNames;
+	TArray<TEnumAsByte<EShooterInteractableType::Type>> ItemTypes;
+	TArray<int32> ItemAmounts;
+
 	if (Hits.Num() > 0) {
 		for (int i = 0; i < Hits.Num(); i++) {
-			UE_LOG(LogTemp, Warning, TEXT("Capsule got: %s"), *Hits[i].Actor->GetName());
+			AShooterWorldActorBase* wActor = Cast<AShooterWorldActorBase>(Hits[i].GetActor());
+			if (wActor) {
+				ItemNames.Add(FName(*(wActor->GetItemNameId())));
+				ItemTypes.Add(wActor->InteractableType);
+				ItemAmounts.Add(wActor->Amount);
+			}
 		}
-
+		InventoryManagerComponent->AddItemsToProximity(ItemNames, ItemTypes, ItemAmounts);
+	}
+	else {
+		InventoryManagerComponent->ClearProximity();
 	}
 	
 	return true;

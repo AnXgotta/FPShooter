@@ -7,31 +7,37 @@
 #include "ShooterGame_BR.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class SHOOTERGAME_API AShooterGame_BR : public AShooterGameMode
 {
 	GENERATED_BODY()
-	
-	
-		UPROPERTY()
+
+
+		UPROPERTY(EditDefaultsOnly, Category = Defaults)
 		UDataTable* WeaponInfoDT;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, Category=Defaults)
+		UDataTable* WeaponUIDT;
+
+	UPROPERTY(EditDefaultsOnly, Category = Defaults)
 		UDataTable* ConsumableDT;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, Category = Defaults)
 		UDataTable* ConsumableUIDT;
 
-	
-	
+
+
 public:
 
 	AShooterGame_BR();
 
 	UFUNCTION()
 		FWeaponData Data_GetWeaponDefaultData(FString WeaponId);
+
+	UFUNCTION()
+		FShooterInventoryItem Data_GetWeaponInventoryItem(FString ItemId);
 
 	UFUNCTION()
 		FShooterInventoryItem Data_GetItemInventoryItem(FString ItemId);

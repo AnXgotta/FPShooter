@@ -45,7 +45,8 @@ public:
 
 	void ToggleInventory();
 
-	void UpdateProximityActors(TArray<FShooterInventoryItem> PoximityItems);
+	void AddItemsToProximity(TArray<FName> NewItemIds, TArray<TEnumAsByte<EShooterInteractableType::Type>> ItemTypes, TArray<int32> ItemAmounts);
+	void ClearProximity();
 
 	int32 AddItemToInventory(FName NewItemId, int32 Amount);
 	int32 AddItemToInventoryImp(FShooterInventoryItem NewItem);

@@ -23,6 +23,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Consumable UI")
 		float Weight;
 
+	UPROPERTY(EditAnywhere, Category = "Defaults")
+		bool bIsStackable;
+
+	UPROPERTY(EditAnywhere, Category = "Defaults")
+		int32 MaxStackable;
+
 	FConsumableUIDataTable() {}
 
 };

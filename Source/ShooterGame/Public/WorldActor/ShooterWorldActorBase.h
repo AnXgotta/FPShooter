@@ -28,6 +28,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Config)
 		FText InteractionText;
 
+	
+
 	UPROPERTY(ReplicatedUsing = OnRep_WasInteracted)
 	bool bWasInteracted;
 
@@ -50,7 +52,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config)
 	TEnumAsByte<EShooterInteractableType::Type> InteractableType;
 
-	
+	UPROPERTY(EditAnywhere, Category = Config)
+		int32 Amount;
+
+
+	FORCEINLINE int32 GetAmount()
+	{
+		return Amount;
+	}
 
 	virtual void OnFocusBegin();
 	virtual void OnFocusEnd();
